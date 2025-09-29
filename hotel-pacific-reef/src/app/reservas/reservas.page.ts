@@ -1,3 +1,4 @@
+
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { IonicModule, ToastController, NavController, LoadingController } from '@ionic/angular';
@@ -10,7 +11,7 @@ import { TranslatePipe } from '../pipes/translate.pipe';
 @Component({
   selector: 'app-reservas',
   standalone: true,
-  imports: [CommonModule, IonicModule, FormsModule, RouterLink],
+  imports: [CommonModule, IonicModule, FormsModule, RouterLink, TranslatePipe],
   templateUrl: './reservas.page.html',
   styleUrls: ['./reservas.page.scss'],
 })
@@ -89,14 +90,13 @@ export class ReservasPage implements OnInit {
 
     if (this.llegada && this.salida) {
       if (this.llegada >= this.salida) {
-        this.errorMsg = 'La salida debe ser posterior a la llegada.';
+        this.errorMsg = this.translationService.getTranslation('reservas.errorArrivalBeforeDeparture');
         return;
       }
       if (this.llegada < this.minDate) {
-        this.errorMsg = 'La llegada debe tener al menos 5 días de anticipación.';
+        this.errorMsg = this.translationService.getTranslation('reservas.errorMinStay');
         return;
       }
-
 
     // Calculate nights correctly
     const start = new Date(this.llegada);
@@ -104,13 +104,16 @@ export class ReservasPage implements OnInit {
     const timeDiff = end.getTime() - start.getTime();
     this.noches = Math.ceil(timeDiff / (1000 * 3600 * 24));
     
-    if (this.noches <= 0) this.errorMsg = 'La estadía debe ser de al menos 1 noche.';
+    if (this.noches <= 0) this.errorMsg = this.translationService.getTranslation('reservas.errorAtLeastOneNight');
   }
 }
 
 async reservar(h: Habitacion) {
-  if (!this.llegada || !this.salida || this.noches <= 0) return this.msg('Selecciona fechas válidas');
-  const overlay = await this.loading.create({ message: 'Preparando pago…' });
+  if (!this.llegada || !this.salida || this.noches <= 0) {
+    this.msg('reservas.errorInvalidDates');
+    return;
+  }
+  const overlay = await this.loading.create({ message: this.translationService.getTranslation('reservas.preparingPayment') });
   await overlay.present();
 
   // Lleva datos a portal-pago
@@ -229,6 +232,7 @@ filtrar() {
     return v.toLocaleString('es-CL', { style: 'currency', currency: 'CLP', maximumFractionDigits: 0 });
   }
   private async msg(text: string, color: 'danger' | 'success' | 'medium' = 'danger') {
-    (await this.toast.create({ message: text, duration: 2200, color, position: 'bottom' })).present();
+    const translatedText = this.translationService.getTranslation(text);
+    (await this.toast.create({ message: translatedText, duration: 2200, color, position: 'bottom' })).present();
   }
 }

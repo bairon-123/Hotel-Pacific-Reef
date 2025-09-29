@@ -1,3 +1,4 @@
+
 <ion-header class="site-header">
   <ion-toolbar color="light">
     <div class="container navbar">
@@ -6,11 +7,11 @@
         <span>Hotel Pacific Reef</span>
       </div>
       <nav class="menu">
-        <a routerLink="/home" routerLinkActive="active">Home</a>
-        <a routerLink="/reservas" routerLinkActive="active">Reservas</a>
-        <a routerLink="/perfil" routerLinkActive="active">Perfil</a>
-        <span *ngIf="currentEmail" class="user-pill">Hola, <b>{{ currentEmail }}</b></span>
-        <a href="#" class="logout" (click)="logout($event)">Cerrar sesión</a>
+        <a routerLink="/home" routerLinkActive="active">{{ 'header.home' | translate }}</a>
+        <a routerLink="/reservas" routerLinkActive="active">{{ 'header.reservas' | translate }}</a>
+        <a routerLink="/perfil" routerLinkActive="active">{{ 'header.perfil' | translate }}</a>
+        <span *ngIf="currentEmail" class="user-pill">{{ 'header.hello' | translate }} <b>{{ currentEmail }}</b></span>
+        <a href="#" class="logout" (click)="logout($event)">{{ 'header.logout' | translate }}</a>
       </nav>
     </div>
   </ion-toolbar>
@@ -21,12 +22,12 @@
   <!-- Filtros -->
   <ion-card>
     <ion-card-header>
-      <ion-card-title>Buscar disponibilidad</ion-card-title>
-      <ion-card-subtitle>Mínimo 5 días de anticipación</ion-card-subtitle>
+      <ion-card-title>{{ 'reservas.search' | translate }}</ion-card-title>
+      <ion-card-subtitle>{{ 'reservas.minStay' | translate }}</ion-card-subtitle>
     </ion-card-header>
     <ion-card-content class="filters-grid">
       <ion-item>
-        <ion-label position="stacked">Llegada</ion-label>
+        <ion-label position="stacked">{{ 'reservas.arrival' | translate }}</ion-label>
         <ion-datetime
           [(ngModel)]="llegada"
           [min]="minDate"
@@ -37,7 +38,7 @@
       </ion-item>
 
       <ion-item>
-        <ion-label position="stacked">Salida</ion-label>
+        <ion-label position="stacked">{{ 'reservas.departure' | translate }}</ion-label>
         <ion-datetime
           [(ngModel)]="salida"
           [min]="minDate"
@@ -49,27 +50,27 @@
 
       <!-- Indicador de política de horas -->
       <ion-text color="medium" class="ion-margin-top">
-        Check-in desde <b>14:00</b> • Check-out hasta <b>12:00</b>. El total se cuenta por <b>noches</b>.
+        {{ 'reservas.checkin' | translate }} <b>14:00</b> • {{ 'reservas.checkout' | translate }} <b>12:00</b>. {{ 'reservas.stay' | translate }} <b>{{ 'reservas.nights' | translate }}</b>.
       </ion-text>
 
       <ion-item>
-        <ion-label>Tipo de habitación</ion-label>
+        <ion-label>{{ 'reservas.roomType' | translate }}</ion-label>
         <ion-select [(ngModel)]="tipoSeleccionado" (ionChange)="filtrar()">
-          <ion-select-option value="">Todas</ion-select-option>
-          <ion-select-option value="basic">Básica</ion-select-option>
-          <ion-select-option value="medium">Medium</ion-select-option>
-          <ion-select-option value="premium">Premium</ion-select-option>
+          <ion-select-option value="">{{ 'reservas.all' | translate }}</ion-select-option>
+          <ion-select-option value="basic">{{ 'reservas.basic' | translate }}</ion-select-option>
+          <ion-select-option value="medium">{{ 'reservas.medium' | translate }}</ion-select-option>
+          <ion-select-option value="premium">{{ 'reservas.premium' | translate }}</ion-select-option>
         </ion-select>
       </ion-item>
 
       <ion-item>
-        <ion-label>Solo disponibles</ion-label>
+        <ion-label>{{ 'reservas.onlyAvailable' | translate }}</ion-label>
         <ion-toggle [(ngModel)]="soloDisponibles" (ionChange)="filtrar()"></ion-toggle>
       </ion-item>
 
       <ion-text color="danger" *ngIf="errorMsg">{{ errorMsg }}</ion-text>
       <ion-note *ngIf="!errorMsg && noches > 0">
-        Estadía: <b>{{ noches }}</b> {{ noches === 1 ? 'noche' : 'noches' }} (check-in 14:00 / check-out 12:00)
+        {{ 'reservas.stay' | translate }}: <b>{{ noches }}</b> {{ noches === 1 ? ('reservas.nights' | translate) : ('reservas.nights' | translate) }} ({{ 'reservas.checkin' | translate }} 14:00 / {{ 'reservas.checkout' | translate }} 12:00)
       </ion-note>
     </ion-card-content>
   </ion-card>
@@ -91,7 +92,7 @@
                 [class.active]="getIndex(h) === i"
                 (click)="showImg(h, i)"
                 type="button"
-                aria-label="Ver imagen {{i+1}} de {{h.nombre}}">
+                [attr.aria-label]="'Ver imagen ' + (i+1) + ' de ' + h.nombre">
           <img [src]="img" [alt]="h.nombre + ' foto ' + (i+1)" />
         </button>
       </div>
@@ -106,9 +107,9 @@
       <p>{{ h.descripcion }}</p>
 
       <div class="price-line">
-        <ion-badge color="primary">{{ currency(h.precioNoche) }}/noche</ion-badge>
-        <ion-badge color="success" *ngIf="h.disponible">Disponible</ion-badge>
-        <ion-badge color="medium" *ngIf="!h.disponible">No disponible</ion-badge>
+        <ion-badge color="primary">{{ currency(h.precioNoche) }}{{ 'reservas.perNight' | translate }}</ion-badge>
+        <ion-badge color="success" *ngIf="h.disponible">{{ 'reservas.available' | translate }}</ion-badge>
+        <ion-badge color="medium" *ngIf="!h.disponible">{{ 'reservas.notAvailable' | translate }}</ion-badge>
       </div>
 
       <div class="amenities" *ngIf="(h.amenities || []).length">
@@ -120,7 +121,7 @@
         color="success"
         [disabled]="!h.disponible || noches <= 0"
         (click)="reservar(h)">
-        Reservar
+        {{ 'reservas.book' | translate }}
       </ion-button>
     </ion-card-content>
   </ion-card>
@@ -128,21 +129,21 @@
   <!-- Lightbox -->
   <ion-modal [isOpen]="lightboxOpen" (didDismiss)="closeLightbox()">
     <div class="lightbox">
-      <button class="lb-btn close" (click)="closeLightbox()" aria-label="Cerrar">
+      <button class="lb-btn close" (click)="closeLightbox()" aria-label="{{ 'login.close' | translate }}">
         <ion-icon name="close"></ion-icon>
       </button>
 
       <button class="lb-btn nav prev"
               (click)="prev()"
               [disabled]="lightboxImgs.length <= 1"
-              aria-label="Anterior">
+              aria-label="{{ 'Anterior' | translate }}">
         <ion-icon name="chevron-back"></ion-icon>
       </button>
 
       <button class="lb-btn nav next"
-              (click)="next()
-              " [disabled]="lightboxImgs.length <= 1"
-              aria-label="Siguiente">
+              (click)="next()"
+              [disabled]="lightboxImgs.length <= 1"
+              aria-label="{{ 'Siguiente' | translate }}">
         <ion-icon name="chevron-forward"></ion-icon>
       </button>
 
@@ -167,7 +168,7 @@
   <!-- Footer -->
   <footer class="footer">
     <div class="container">
-      <p>© 2025 Hotel Pacific Reef — Todos los derechos reservados</p>
+      <p>{{ 'home.footer' | translate }}</p>
     </div>
   </footer>
 </ion-content>

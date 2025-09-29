@@ -1,3 +1,4 @@
+
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
@@ -6,12 +7,14 @@ import {
 import { FormsModule, ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { AuthDbService, Habitacion } from '../services/auth-db.service';
+import { TranslationService } from '../services/translation.service';
+import { TranslatePipe } from '../pipes/translate.pipe';
 import QRCode from 'qrcode';
 
 @Component({
   selector: 'app-portal-pago',
   standalone: true,
-  imports: [CommonModule, IonicModule, FormsModule, ReactiveFormsModule, RouterLink, RouterLinkActive],
+  imports: [CommonModule, IonicModule, FormsModule, ReactiveFormsModule, RouterLink, RouterLinkActive, TranslatePipe],
   templateUrl: './portal-pago.page.html',
   styleUrls: ['./portal-pago.page.scss']
 })
@@ -48,7 +51,8 @@ export class PortalPagoPage implements OnInit {
     private loading: LoadingController,
     private alert: AlertController,
     private nav: NavController,
-    private router: Router
+    private router: Router,
+    private translationService: TranslationService
   ) {}
 
   async ngOnInit() {
@@ -66,7 +70,7 @@ export class PortalPagoPage implements OnInit {
     this.habitacion = rooms.find((r: Habitacion) => r.id === roomId) || null;
 
     if (!this.habitacion || !this.llegada || !this.salida || this.noches <= 0) {
-      await this.msg('Datos de la reserva incompletos. Vuelve a Reservas.');
+      await this.msg('pago.errorIncompleteData');
       this.nav.navigateBack('/reservas');
       return;
     }
@@ -84,7 +88,8 @@ export class PortalPagoPage implements OnInit {
     return n.toLocaleString('es-CL', { style: 'currency', currency: 'CLP', maximumFractionDigits: 0 });
   }
   async msg(text: string, color: 'danger' | 'success' | 'medium' = 'danger') {
-    (await this.toast.create({ message: text, duration: 2000, color, position: 'bottom' })).present();
+    const translatedText = this.translationService.getTranslation(text);
+    (await this.toast.create({ message: translatedText, duration: 2000, color, position: 'bottom' })).present();
   }
   logout(ev?: Event) { ev?.preventDefault(); this.db.logout(); this.nav.navigateRoot('/login'); }
 
@@ -110,14 +115,14 @@ export class PortalPagoPage implements OnInit {
   }
 
   async confirmarPago() {
-    if (!this.formularioValido()) return this.msg('Revisa los campos obligatorios.');
-    const loading = await this.loading.create({ message: 'Procesando pago…' });
+    if (!this.formularioValido()) return this.msg('pago.errorReviewFields');
+    const loading = await this.loading.create({ message: this.translationService.getTranslation('pago.processingPayment') });
     await loading.present();
 
     try {
       const hab = this.habitacion!;
       const ok = this.db.isRangeAvailable(hab.id, this.llegada!, this.salida!);
-      if (!ok) throw new Error('La habitación ya no está disponible en esas fechas.');
+      if (!ok) throw new Error(this.translationService.getTranslation('pago.errorRoomNotAvailable'));
 
       const reserva = this.db.addReservation({
         email: this.currentEmail!,
@@ -154,15 +159,19 @@ export class PortalPagoPage implements OnInit {
 
       await loading.dismiss();
       const done = await this.alert.create({
-        header: 'Pago confirmado',
-        message: 'Tu reserva fue generada con éxito. El QR con los datos está en tu perfil.',
-        buttons: [{ text: 'Ir a Perfil', handler: () => this.nav.navigateRoot('/perfil') }]
+        header: this.translationService.getTranslation('pago.paymentConfirmed'),
+        message: this.translationService.getTranslation('pago.bookingGenerated'),
+        buttons: [{ text: this.translationService.getTranslation('pago.goToProfile'), handler: () => this.nav.navigateRoot('/perfil') }]
       });
       done.present();
 
     } catch (e: any) {
       await loading.dismiss();
-      const er = await this.alert.create({ header: 'Error', message: e?.message || 'No se pudo completar el pago.', buttons: ['OK'] });
+      const er = await this.alert.create({ 
+        header: this.translationService.getTranslation('pago.error'), 
+        message: e?.message || this.translationService.getTranslation('pago.errorCompletingPayment'), 
+        buttons: ['OK'] 
+      });
       er.present();
     }
   }
