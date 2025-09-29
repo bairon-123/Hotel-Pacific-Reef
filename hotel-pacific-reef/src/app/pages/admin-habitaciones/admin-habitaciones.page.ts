@@ -1,10 +1,11 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { IonicModule, ToastController, AlertController } from '@ionic/angular';
+import { IonicModule, ToastController, AlertController,NavController } from '@ionic/angular';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { AuthDbService, Habitacion, RoomType } from '../../services/auth-db.service';
 type Mode = 'add' | 'edit';
+
 
 @Component({
   selector: 'app-admin-habitaciones',
@@ -30,8 +31,11 @@ export class AdminHabitacionesPage implements OnInit {
     capacidad: 2
   };
 
+
   constructor(
     private db: AuthDbService,
+    private auth: AuthDbService,
+    private nav: NavController,
     private toast: ToastController,
     private alert: AlertController
   ) {}
@@ -138,5 +142,13 @@ export class AdminHabitacionesPage implements OnInit {
 
   tipoLabel(t: RoomType) {
     return t === 'basic' ? 'Básica' : t === 'medium' ? 'Medium' : 'Premium';
+  }
+
+
+  // ⬅️ nuevo método
+  logout(ev?: Event) {
+    ev?.preventDefault();
+    this.auth.logout();
+    this.nav.navigateRoot('/login');
   }
 }

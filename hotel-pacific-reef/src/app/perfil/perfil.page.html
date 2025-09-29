@@ -18,7 +18,7 @@
 </ion-header>
 
 <ion-content [fullscreen]="true" class="site-content ion-padding page-content">
-  <!-- Datos de la cuenta -->
+  <!-- Datos cuenta -->
   <ion-card>
     <ion-card-header>
       <ion-card-title>{{ 'perfil.title' | translate }}</ion-card-title>
@@ -32,8 +32,8 @@
             <p>{{ email }}</p>
           </ion-label>
         </ion-item>
-        
-        <!-- Preferencia de idioma -->
+
+        <!--idioma -->
         <ion-item lines="full">
           <ion-label>
             <h2>{{ 'perfil.language' | translate }}</h2>
@@ -48,7 +48,7 @@
     </ion-card-content>
   </ion-card>
 
-  <!-- Mis reservas -->
+  <!--reservas -->
   <ion-card>
     <ion-card-header>
       <ion-card-title>{{ 'perfil.reservas' | translate }}</ion-card-title>
@@ -63,7 +63,7 @@
             <p>🗓 {{ r.llegada }} → {{ r.salida }} • {{ r.noches }} {{ r.noches === 1 ? ('reservas.nights' | translate) : ('reservas.nights' | translate) }}</p>
             <p>💵 {{ currency(r.precioNoche) }} {{ 'reservas.perNight' | translate }} • {{ 'pago.totalStay' | translate }}: <b>{{ currency(r.total) }}</b></p>
 
-            <!-- QR  -->
+            <!-- QR -->
             <div *ngIf="r.qrImage" class="qr-box" style="margin-top:10px;">
               <img [src]="r.qrImage" alt="QR de la reserva #{{ r.id }}" style="width:140px; height:140px; object-fit:contain;"/>
               <div class="qr-actions" style="margin-top:6px;">
@@ -72,13 +72,18 @@
             </div>
           </ion-label>
 
+
+
+
           <ion-buttons slot="end">
             <ion-button fill="clear" color="primary" (click)="abrirEditar(r)">
               <ion-icon name="create-outline" slot="start"></ion-icon>
               {{ 'perfil.edit' | translate }}
             </ion-button>
-            <ion-button fill="clear" color="danger" (click)="borrarReserva(r)">
-              <ion-icon name="trash-outline"></ion-icon>
+
+            <ion-button color="danger" size="small" (click)="borrarReserva(r)">
+              <ion-icon name="trash-outline" slot="start"></ion-icon>
+              Eliminar
             </ion-button>
           </ion-buttons>
         </ion-item>
@@ -108,20 +113,28 @@
         <ion-item>
           <ion-label position="stacked">{{ 'perfil.newArrival' | translate }}</ion-label>
           <ion-datetime
-            [(ngModel)]="editLlegada"
-            [min]="minDate"
-            [max]="maxDate"
-            presentation="date">
+            *ngIf="showPickers"
+            [value]="editLlegada ? (editLlegada + 'T00:00:00') : undefined"
+            [min]="minEdit + 'T00:00:00'"
+            [max]="maxEdit + 'T00:00:00'"
+            presentation="date"
+            locale="es-CL"
+            firstDayOfWeek="1"
+            (ionChange)="onChangeLlegada($event)">
           </ion-datetime>
         </ion-item>
 
         <ion-item>
           <ion-label position="stacked">{{ 'perfil.newDeparture' | translate }}</ion-label>
           <ion-datetime
-            [(ngModel)]="editSalida"
-            [min]="minDate"
-            [max]="maxDate"
-            presentation="date">
+            *ngIf="showPickers"
+            [value]="editSalida ? (editSalida + 'T00:00:00') : undefined"
+            [min]="minEdit + 'T00:00:00'"
+            [max]="maxEdit + 'T00:00:00'"
+            presentation="date"
+            locale="es-CL"
+            firstDayOfWeek="1"
+            (ionChange)="onChangeSalida($event)">
           </ion-datetime>
         </ion-item>
 

@@ -36,3 +36,4 @@ export class HomePage implements OnInit {
     this.nav.navigateRoot('/login');
   }
 }
+

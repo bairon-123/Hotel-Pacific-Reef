@@ -26,14 +26,17 @@ export class PerfilPage implements OnInit {
   reservas: Reserva[] = [];
   selectedLanguage = 'es';
 
-  // Modal edición 
+  // Modal edición
   editOpen = false;
   editReserva: Reserva | null = null;
-  editLlegada = '';
-  editSalida = '';
-  editError = '';
+  editLlegada = '';              
+  editSalida  = '';               
+  editError   = '';
   minDate = '';
   maxDate = '';
+  minEdit = '';
+  maxEdit = '';
+  showPickers = false;
 
   constructor(
     private authDb: AuthDbService,
@@ -51,8 +54,10 @@ export class PerfilPage implements OnInit {
       return;
     }
 
-    // Cargar idioma actual
+
     this.selectedLanguage = this.translationService.getCurrentLang();
+
+    // rango de dias mínimo/máximo
 
     const hoy = new Date();
     this.minDate = this.toISO(this.addDays(hoy, 5));
@@ -61,10 +66,9 @@ export class PerfilPage implements OnInit {
     this.load();
   }
 
-  // Método para cambiar idioma
+  // idioma
   changeLanguage() {
     this.translationService.setLanguage(this.selectedLanguage);
-    // Recargar para aplicar cambios en toda la app
     window.location.reload();
   }
 
@@ -97,7 +101,7 @@ export class PerfilPage implements OnInit {
             this.load();
             (await this.toast.create({ message: 'Reserva eliminada', duration: 1500, color: 'success' })).present();
           }
-        },
+        }
       ]
     });
     await a.present();
@@ -105,10 +109,21 @@ export class PerfilPage implements OnInit {
 
   abrirEditar(r: Reserva) {
     this.editReserva = r;
-    this.editLlegada = r.llegada;
-    this.editSalida  = r.salida;
+
+    const llegadaNorm = this.normalizeISO(r.llegada);
+    const salidaNorm  = this.normalizeISO(r.salida);
+
+    this.editLlegada = llegadaNorm;
+    this.editSalida  = salidaNorm;
+
+    this.minEdit = this.minISO(this.minDate, llegadaNorm);
+    this.maxEdit = this.maxISO(this.maxDate,  salidaNorm);
+
     this.editError = '';
     this.editOpen = true;
+
+    this.showPickers = false;
+    setTimeout(() => { this.showPickers = true; }, 0);
   }
 
   cerrarEditar() {
@@ -116,15 +131,33 @@ export class PerfilPage implements OnInit {
     this.editReserva = null;
     this.editLlegada = this.editSalida = '';
     this.editError = '';
+    this.showPickers = false;
+  }
+
+  onChangeLlegada(ev: CustomEvent) {
+    const v = (ev.detail as any).value as string | null;
+    this.editLlegada = v ? v.slice(0, 10) : '';
+    this.editError = '';
+    if (this.editLlegada && this.editSalida && this.editLlegada >= this.editSalida) {
+      this.editError = 'La salida debe ser posterior a la llegada.';
+    }
+  }
+
+  onChangeSalida(ev: CustomEvent) {
+    const v = (ev.detail as any).value as string | null;
+    this.editSalida = v ? v.slice(0, 10) : '';
+    this.editError = '';
+    if (this.editLlegada && this.editSalida && this.editLlegada >= this.editSalida) {
+      this.editError = 'La salida debe ser posterior a la llegada.';
+    }
   }
 
   puedeGuardarEdicion(): boolean {
     if (!this.editReserva) return false;
     if (!this.editLlegada || !this.editSalida) return false;
     if (this.editLlegada >= this.editSalida) return false;
-    if (this.editLlegada < this.minDate) return false;
-    if (this.editLlegada > this.maxDate) return false;
-    if (this.editSalida  > this.maxDate) return false;
+    if (this.editLlegada < this.minEdit) return false;
+    if (this.editSalida  > this.maxEdit) return false;
     return true;
   }
 
@@ -142,16 +175,20 @@ export class PerfilPage implements OnInit {
 
   trackById(index: number, item: Reserva) { return item.id; }
 
+  // ===== fechas =====
+  private normalizeISO(v: string): string { return (v || '').slice(0, 10); }
+  private minISO(a: string, b: string) { return a <= b ? a : b; }
+  private maxISO(a: string, b: string) { return a >= b ? a : b; }
+
   private toISO(d: Date) {
     const y = d.getFullYear();
     const m = String(d.getMonth() + 1).padStart(2, '0');
     const day = String(d.getDate()).padStart(2, '0');
     return `${y}-${m}-${day}`;
   }
-  
   private addDays(base: Date, days: number) {
-    const d = new Date(base); 
-    d.setDate(d.getDate() + days); 
+    const d = new Date(base);
+    d.setDate(d.getDate() + days);
     return d;
   }
 }

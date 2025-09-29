@@ -4,28 +4,27 @@ import { Injectable } from '@angular/core';
 export type RoomType = 'basic' | 'medium' | 'premium';
 
 export type UserRow = {
-  email: string;           // PK
+  email: string;           
   password_hash: string;
-  created_at: string;      // ISO
+  created_at: string;      
   name?: string;
   role?: 'admin' | 'user';
 };
 
 export type Reserva = {
   id: number;
-  email: string;           // dueño (normalizado a lower)
+  email: string;       
   habitacionId: number;
   nombreHabitacion: string;
   tipo: RoomType;
-  llegada: string;         // YYYY-MM-DD
-  salida: string;          // YYYY-MM-DD (checkout)
+  llegada: string;        
+  salida: string;        
   noches: number;
   precioNoche: number;
   total: number;
-  createdAt: string;       // ISO
-  // === NUEVO para QR ===
-  qrImage?: string;        // PNG en data URL
-  qrPayload?: string;      // Texto/JSON usado para generar el QR
+  createdAt: string;     
+  qrImage?: string;        
+  qrPayload?: string;      
 };
 
 export type Habitacion = {
@@ -48,7 +47,7 @@ export class AuthDbService {
   private readonly LS_RESERVAS = 'reservas_hotel_v1';
   private readonly LS_ROOMS    = 'rooms_hotel_v1';
 
-  /** Inicializa “BD” web: tablas, habitaciones seed y super admin. */
+
   async init(): Promise<void> {
     if (!localStorage.getItem(this.LS_USERS))    localStorage.setItem(this.LS_USERS, JSON.stringify([]));
     if (!localStorage.getItem(this.LS_RESERVAS)) localStorage.setItem(this.LS_RESERVAS, JSON.stringify([]));
@@ -56,9 +55,9 @@ export class AuthDbService {
       const seed: Habitacion[] = [
         {
           id: 1, nombre: 'Básica Vista Jardín', tipo: 'basic', precioNoche: 45000, disponible: true, imgs: [
-            '',
-            'C:\\Users\\bairo\\hotel-pacific-reef\\hotel-pacific-reef\\src\\assets\\images\\imagenes hotel\\basic\\147653917.jpg',
-            ''
+            'https://adx341sas12ff.enjoy.cl/BibliotecaMedios/MotorReserva/imagenes/habitacion_canal_1324.jpg',
+            'https://adx341sas12ff.enjoy.cl/BibliotecaMedios/MotorReserva/imagenes/habitacion_canal_1325.jpg',
+            'https://adx341sas12ff.enjoy.cl/BibliotecaMedios/MotorReserva/imagenes/habitacion_canal_1326.jpg'
           ],
           camas: '1 cama Queen',
           capacidad: 2,
@@ -90,7 +89,7 @@ export class AuthDbService {
     await this.seedAdmin();
   }
 
-  /** Crea superusuario si no existe. */
+ 
   private async seedAdmin() {
     const users: UserRow[] = JSON.parse(localStorage.getItem(this.LS_USERS) || '[]');
     const adminEmail = 'admin@pacificreef.cl';
@@ -106,7 +105,7 @@ export class AuthDbService {
     }
   }
 
-  /* ======== UTIL: hash y password policy ======== */
+
   async hash(text: string): Promise<string> {
     const enc = new TextEncoder().encode(text);
     const buf = await crypto.subtle.digest('SHA-256', enc);
@@ -116,7 +115,7 @@ export class AuthDbService {
     return /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/.test((p || '').trim());
   }
 
-  /* ======== AUTH / USERS ======== */
+
   async register(email: string, password: string, _unused?: any): Promise<void> {
     email = email.trim().toLowerCase();
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) throw new Error('Correo inválido.');
@@ -203,12 +202,11 @@ export class AuthDbService {
     const key = email.toLowerCase();
     const list: UserRow[] = JSON.parse(localStorage.getItem(this.LS_USERS) || '[]');
     localStorage.setItem(this.LS_USERS, JSON.stringify(list.filter(u => u.email !== key)));
-    // borra también reservas
     const all: Reserva[] = JSON.parse(localStorage.getItem(this.LS_RESERVAS) || '[]');
     localStorage.setItem(this.LS_RESERVAS, JSON.stringify(all.filter(r => r.email !== key)));
   }
 
-  /* ======== RESERVAS ======== */
+  /*RESERVAS */
   listReservations(): Reserva[] {
     const all: Reserva[] = JSON.parse(localStorage.getItem(this.LS_RESERVAS) || '[]');
     return all.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
@@ -285,9 +283,8 @@ export class AuthDbService {
     localStorage.setItem(this.LS_RESERVAS, JSON.stringify(all));
   }
 
-  // === Disponibilidad / solapamiento ===
+
   isRangeOverlap(aStart: string, aEnd: string, bStart: string, bEnd: string) {
-    // intervalos semiabiertos [start, end)
     return !(aEnd <= bStart || bEnd <= aStart);
   }
 
@@ -321,7 +318,7 @@ export class AuthDbService {
     localStorage.setItem(this.LS_RESERVAS, JSON.stringify(all));
   }
 
-  /* ======== HABITACIONES ======== */
+  /* HABITACIONES */
   listRooms(): Habitacion[] {
     const all: Habitacion[] = JSON.parse(localStorage.getItem(this.LS_ROOMS) || '[]');
     return all.sort((a, b) => a.id - b.id);
@@ -345,7 +342,7 @@ export class AuthDbService {
     localStorage.setItem(this.LS_ROOMS, JSON.stringify(list));
   }
 
-  /* ======== REPORTES ======== */
+  /*REPORTES */
   reportTotalsByMonth(): { mes: string; total: number }[] {
     const map = new Map<string, number>();
     for (const r of this.listReservations()) {

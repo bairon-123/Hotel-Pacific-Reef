@@ -1,9 +1,8 @@
+/* Layout básicos (ajusta si usas global.scss) */
 .container { width: min(1140px, 92vw); margin-inline: auto; }
-.site-header ion-toolbar { --background:#fff; --color:#111827; border-bottom:1px solid #e5e7eb; }
 .navbar { display:flex; align-items:center; justify-content:space-between; min-height:64px; }
 .brand { display:flex; align-items:center; gap:10px; font-weight:700; }
 .brand ion-icon { font-size:20px; color: var(--ion-color-primary); }
-
 .menu { display:flex; align-items:center; gap:18px; }
 .menu a { color:#374151; text-decoration:none; padding:8px 12px; border-radius:10px; }
 .menu a.active, .menu a:hover { background:#f3f4f6; }
@@ -18,43 +17,57 @@ ion-card-header { background:#f9fafb; border-bottom:1px solid #e5e7eb; }
 
 .res-item { align-items:flex-start; }
 
+/* QR */
+.qr-box {
+  margin-top: 10px;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+}
+.qr-box img {
+  width: 140px; height: 140px; object-fit: contain; border-radius: 8px;
+  box-shadow: 0 6px 16px rgba(0,0,0,.08);
+}
+.qr-actions { margin-top: 6px; }
+.qr-actions a { color: var(--ion-color-primary); text-decoration:none; }
 
 /* Footer siempre al final */
-.footer {
+footer.footer {
   margin-top: auto;
   background: #0f172a;
   color: #cbd5e1;
   padding: 18px 0;
   box-shadow: inset 0 1px 0 rgba(255,255,255,.04);
 }
-.footer .container {
+footer.footer .container {
   display: flex;
   justify-content: center;
   align-items: center;
 }
 
-
-/* codigo QR*/
-.qr-box {
-  margin-top: 8px;
-  display: inline-flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 6px;
-
-  img {
-    width: 140px;
-    height: 140px;
-    object-fit: contain;
-    border: 1px solid #e5e7eb;
-    border-radius: 8px;
-    background: #fff;
-    padding: 6px;
-  }
-
-  .qr-actions a {
-    font-size: 12px;
-    color: var(--ion-color-primary);
-    text-decoration: none;
-  }
+/* ===== Fix visual: mostrar días de ion-datetime en el modal ===== */
+ion-modal ion-datetime {
+  --background: #ffffff;
+  --ion-text-color: #111827;
+  min-height: 320px;
 }
+ion-modal ion-datetime::part(calendar-day),
+ion-modal ion-datetime::part(month-year-button),
+ion-modal ion-datetime::part(next-month),
+ion-modal ion-datetime::part(prev-month) {
+  color: #111827;
+}
+ion-modal ion-datetime::part(calendar-day-disabled) {
+  color: #9ca3af;
+}
+ion-modal ion-datetime::part(calendar-day-active) {
+  background: var(--ion-color-primary);
+  color: #ffffff;
+}
+
+:host ::ng-deep ion-datetime .calendar-day {
+  display: inline-flex;
+  visibility: visible;
+  opacity: 1;
+}
+

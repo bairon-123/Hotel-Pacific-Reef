@@ -5,17 +5,19 @@
         <ion-icon name="settings-outline"></ion-icon>
         <span>Panel de Administración</span>
       </div>
-        <nav class="menu">
+      <nav class="menu">
         <a routerLink="/admin">Dashboard</a>
         <a routerLink="/admin/usuarios">Usuarios</a>
         <a routerLink="/admin/reservas">Reservas</a>
         <a routerLink="/admin/habitaciones" routerLinkActive="active">Habitaciones</a>
         <a routerLink="/admin/reportes">Reportes</a>
+        <a href="#" class="logout" (click)="logout($event)">Cerrar sesión</a>
         <a routerLink="/home">Volver al sitio</a>
       </nav>
     </div>
   </ion-toolbar>
 </ion-header>
+
 <ion-content class="site-content ion-padding">
   <ion-card>
     <ion-card-header>
@@ -23,7 +25,6 @@
       <ion-card-subtitle>Selecciona una sección para gestionar:</ion-card-subtitle>
     </ion-card-header>
   </ion-card>
-
 
   <div class="grid">
     <ion-card *ngFor="let c of cards" [routerLink]="c.route" class="admin-card">

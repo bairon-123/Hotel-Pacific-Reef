@@ -1,6 +1,7 @@
+
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { IonicModule, AlertController, ToastController } from '@ionic/angular';
+import { IonicModule, AlertController, ToastController, NavController } from '@ionic/angular';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { AuthDbService, Reserva } from '../../services/auth-db.service';
@@ -22,6 +23,8 @@ export class AdminReservasPage implements OnInit {
   constructor(
     private db: AuthDbService,
     private alert: AlertController,
+    private auth: AuthDbService,
+    private nav: NavController,
     private toast: ToastController
   ) {}
 
@@ -114,4 +117,16 @@ export class AdminReservasPage implements OnInit {
   private async ok(message: string, color: 'success' | 'danger' | 'medium' = 'success') {
     (await this.toast.create({ message, duration: 1600, color, position: 'bottom' })).present();
   }
+
+
+  
+
+
+  // ⬅️ nuevo método
+  logout(ev?: Event) {
+    ev?.preventDefault();
+    this.auth.logout();
+    this.nav.navigateRoot('/login');
+  }
 }
+
