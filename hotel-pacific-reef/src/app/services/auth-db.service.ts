@@ -76,9 +76,9 @@ export class AuthDbService {
         },
         {
           id: 3, nombre: 'Premium Vista Mar Completa', tipo: 'premium', precioNoche: 125000, disponible: true, imgs: [
-            'https://images.unsplash.com/photo-1505691723518-36a5ac3b2bc5?q=80&w=1200&auto=format&fit=crop',
-            'https://images.unsplash.com/photo-1590490360182-c33d57733427?q=80&w=1200&auto=format&fit=crop',
-            'https://images.unsplash.com/photo-1505692952047-1a78307da8f3?q=80&w=1200&auto=format&fit=crop'
+            'https://adx341sas12ff.enjoy.cl/BibliotecaMedios/MotorReserva/imagenes/habitacion_canal_1373.jpg',
+            'https://adx341sas12ff.enjoy.cl/BibliotecaMedios/MotorReserva/imagenes/habitacion_canal_1375.jpg',
+            'https://adx341sas12ff.enjoy.cl/BibliotecaMedios/MotorReserva/imagenes/habitacion_canal_1377.jpg'
           ],
           camas: '1 cama King + Sofá cama',
           capacidad: 4,
