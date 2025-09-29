@@ -3,8 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { IonicModule, ToastController, NavController, IonInput } from '@ionic/angular';
 import { AuthDbService } from '../services/auth-db.service';
-import { TranslationService } from '../services/translation.service';
-import { TranslatePipe } from '../pipes/translate.pipe';
+
 
 @Component({
   selector: 'app-login',
