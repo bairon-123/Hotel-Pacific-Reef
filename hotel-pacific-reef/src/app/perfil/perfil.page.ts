@@ -7,6 +7,8 @@ import { AuthDbService, Reserva } from '../services/auth-db.service';
 import { TranslationService } from '../services/translation.service';
 import { TranslatePipe } from '../pipes/translate.pipe';
 
+//componentes necesarios para el perfil de usuario y la gestión de reservas
+
 @Component({
   selector: 'app-perfil',
   standalone: true,
