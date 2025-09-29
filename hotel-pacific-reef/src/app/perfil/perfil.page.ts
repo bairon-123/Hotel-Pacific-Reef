@@ -2,8 +2,9 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { IonicModule, NavController, AlertController, ToastController } from '@ionic/angular';
 import { RouterLink, RouterLinkActive } from '@angular/router';
-import { FormsModule } from '@angular/forms';           
+import { FormsModule } from '@angular/forms';
 import { AuthDbService, Reserva } from '../services/auth-db.service';
+
 
 @Component({
   selector: 'app-perfil',
@@ -11,9 +12,9 @@ import { AuthDbService, Reserva } from '../services/auth-db.service';
   imports: [
     CommonModule,
     IonicModule,
-    FormsModule,          
+    FormsModule,          // necesario para [(ngModel)] en ion-datetime
     RouterLink,
-    RouterLinkActive      
+    RouterLinkActive
   ],
   templateUrl: './perfil.page.html',
   styleUrls: ['./perfil.page.scss']
@@ -22,7 +23,7 @@ export class PerfilPage implements OnInit {
   email: string | null = null;
   reservas: Reserva[] = [];
 
-
+  // Modal edición
   editOpen = false;
   editReserva: Reserva | null = null;
   editLlegada = '';
@@ -45,9 +46,11 @@ export class PerfilPage implements OnInit {
       this.nav.navigateRoot('/login');
       return;
     }
+
     const hoy = new Date();
     this.minDate = this.toISO(this.addDays(hoy, 5));
     this.maxDate = this.toISO(this.addDays(hoy, 365));
+
     this.load();
   }
 
@@ -72,10 +75,15 @@ export class PerfilPage implements OnInit {
       message: `¿Eliminar la reserva #${r.id} de "${r.nombreHabitacion}"?`,
       buttons: [
         { text: 'Cancelar', role: 'cancel' },
-        { text: 'Eliminar', role: 'destructive', handler: () => {
-          this.authDb.removeReservation(r.id);
-          this.load();
-        }},
+        {
+          text: 'Eliminar',
+          role: 'destructive',
+          handler: async () => {
+            this.authDb.removeReservation(r.id);
+            this.load();
+            (await this.toast.create({ message: 'Reserva eliminada', duration: 1500, color: 'success' })).present();
+          }
+        },
       ]
     });
     await a.present();
@@ -88,6 +96,7 @@ export class PerfilPage implements OnInit {
     this.editError = '';
     this.editOpen = true;
   }
+
   cerrarEditar() {
     this.editOpen = false;
     this.editReserva = null;
@@ -100,25 +109,28 @@ export class PerfilPage implements OnInit {
     if (!this.editLlegada || !this.editSalida) return false;
     if (this.editLlegada >= this.editSalida) return false;
     if (this.editLlegada < this.minDate) return false;
+    if (this.editLlegada > this.maxDate) return false;
+    if (this.editSalida  > this.maxDate) return false;
     return true;
   }
-  
-  trackById(index: number, item: Reserva) {
-  return item.id;
-}
 
   async guardarEdicion() {
     if (!this.editReserva) return;
     try {
+      // Valida solapamientos y persiste en "BD"
       this.authDb.updateReservationDates(this.editReserva.id, this.editLlegada, this.editSalida);
       (await this.toast.create({ message: 'Reserva actualizada', duration: 1800, color: 'success' })).present();
       this.cerrarEditar();
-      this.load();
-    } catch (e:any) {
+      this.load(); // refresca listado (y Admin podrá ver el cambio)
+    } catch (e: any) {
       this.editError = e?.message || 'No se pudo actualizar';
     }
   }
 
+  // trackBy para performance y evitar warnings
+  trackById(index: number, item: Reserva) { return item.id; }
+
+  // Helpers fecha
   private toISO(d: Date) {
     const y = d.getFullYear();
     const m = String(d.getMonth() + 1).padStart(2, '0');

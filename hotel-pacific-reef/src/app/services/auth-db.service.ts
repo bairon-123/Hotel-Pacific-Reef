@@ -22,7 +22,10 @@ export type Reserva = {
   noches: number;
   precioNoche: number;
   total: number;
-  createdAt: string;       // ISO, cuándo se creó la reserva
+  createdAt: string;       // ISO
+  // === NUEVO para QR ===
+  qrImage?: string;        // PNG en data URL
+  qrPayload?: string;      // Texto/JSON usado para generar el QR
 };
 
 export type Habitacion = {
@@ -103,19 +106,18 @@ export class AuthDbService {
     }
   }
 
-  /* ======== UTIL: hash ======== */
+  /* ======== UTIL: hash y password policy ======== */
   async hash(text: string): Promise<string> {
     const enc = new TextEncoder().encode(text);
     const buf = await crypto.subtle.digest('SHA-256', enc);
     return [...new Uint8Array(buf)].map(b => b.toString(16).padStart(2, '0')).join('');
   }
-
   private isStrongPassword(p: string): boolean {
     return /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/.test((p || '').trim());
   }
 
   /* ======== AUTH / USERS ======== */
-  async register(email: string, password: string, p0: any): Promise<void> {
+  async register(email: string, password: string, _unused?: any): Promise<void> {
     email = email.trim().toLowerCase();
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) throw new Error('Correo inválido.');
     if (!this.isStrongPassword(password)) {
@@ -145,7 +147,6 @@ export class AuthDbService {
   }
 
   logout(): void { localStorage.removeItem(this.LS_SESSION); }
-
   getSessionEmail(): string | null { return localStorage.getItem(this.LS_SESSION); }
 
   isAdmin(email?: string | null): boolean {
@@ -170,12 +171,11 @@ export class AuthDbService {
   }
 
   async deleteAccount(email: string): Promise<void> {
-    email = email.trim().toLowerCase();
+    const key = email.trim().toLowerCase();
     const list: UserRow[] = JSON.parse(localStorage.getItem(this.LS_USERS) || '[]');
-    localStorage.setItem(this.LS_USERS, JSON.stringify(list.filter(u => u.email !== email)));
-    // borra también reservas del usuario
-    this.clearReservationsFor(email);
-    if (this.getSessionEmail() === email) this.logout();
+    localStorage.setItem(this.LS_USERS, JSON.stringify(list.filter(u => u.email !== key)));
+    this.clearReservationsFor(key);
+    if (this.getSessionEmail() === key) this.logout();
   }
 
   listUsers(): UserRow[] {
@@ -219,19 +219,19 @@ export class AuthDbService {
     return this.listReservations().filter(r => r.email === key);
   }
 
-  /** Agrega una reserva garantizando unicidad por habitación (sin solapamientos) y evitando duplicados exactos. */
-  addReservation(data: Omit<Reserva, 'id' | 'createdAt' | 'email'> & { email: string }): Reserva {
+  /** Agrega una reserva garantizando unicidad (sin solapamientos) y evitando duplicados exactos. */
+  addReservation(data: Omit<Reserva, 'id' | 'createdAt' | 'email' | 'qrImage' | 'qrPayload'> & { email: string }): Reserva {
     const all = this.listReservations();
 
     const email = data.email.trim().toLowerCase();
     const llegada = data.llegada;
     const salida  = data.salida;
 
-    // 1) Rango válido
+    // 1) Rango válido (noches calculadas por seguridad)
     const noches = Math.round((+new Date(salida) - +new Date(llegada)) / 86400000);
     if (noches <= 0) throw new Error('Rango de fechas inválido.');
 
-    // 2) Evitar solapamientos para la misma habitación (UNICIDAD por rango)
+    // 2) Evitar solapamientos para la misma habitación
     if (!this.isRangeAvailable(data.habitacionId, llegada, salida)) {
       throw new Error('La habitación ya está reservada en esas fechas.');
     }
@@ -258,13 +258,24 @@ export class AuthDbService {
       tipo: data.tipo,
       llegada,
       salida,
-      noches,
+      noches, // (recalculated)
       precioNoche: data.precioNoche,
       total: data.total
     };
+
     all.unshift(reserva);
     localStorage.setItem(this.LS_RESERVAS, JSON.stringify(all));
     return reserva;
+  }
+
+  /** Adjunta imagen QR y payload a una reserva existente. */
+  attachQrToReservation(id: number, qrImage: string, qrPayload: string): void {
+    const all: Reserva[] = JSON.parse(localStorage.getItem(this.LS_RESERVAS) || '[]');
+    const i = all.findIndex(r => r.id === id);
+    if (i === -1) throw new Error('Reserva no encontrada para adjuntar QR');
+    all[i].qrImage = qrImage;
+    all[i].qrPayload = qrPayload;
+    localStorage.setItem(this.LS_RESERVAS, JSON.stringify(all));
   }
 
   removeReservation(id: number): void {

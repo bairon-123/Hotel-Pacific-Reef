@@ -10,7 +10,6 @@
           <b>HOTEL</b><span>PACIFIC REEF</span>
         </div>
       </div>
-
       <h2>Inicia sesión</h2>
 
       <!-- Email -->
@@ -41,6 +40,28 @@
           <ion-icon [name]="showPass ? 'eye-off-outline' : 'eye-outline'"></ion-icon>
         </button>
       </ion-item>
+
+      <!-- captcha -->
+      
+      <div class="captcha-block">
+        <label class="captcha-label">Verificación</label>
+        <div class="captcha-row">
+          <img class="captcha-img"
+               [src]="captchaImage"
+               alt="Texto CAPTCHA" />
+          <ion-input
+            [(ngModel)]="captchaInput"
+            placeholder="Escribe el texto"
+            aria-label="Texto del CAPTCHA"
+            (ionInput)="captchaError=''"
+            (ionBlur)="checkCaptchaEmpty()"
+          ></ion-input>
+          <ion-button fill="clear" size="small" (click)="regenCaptcha()" aria-label="Actualizar captcha">
+            <ion-icon name="refresh-outline"></ion-icon>
+          </ion-button>
+        </div>
+        <ion-text color="danger" *ngIf="captchaError">{{ captchaError }}</ion-text>
+      </div>
 
       <ion-button expand="block" class="btn-primary" (click)="onLogin()" [disabled]="isLoading">
         <ion-spinner *ngIf="isLoading" name="dots"></ion-spinner>
@@ -75,14 +96,18 @@
         </ion-item>
 
         <ion-item lines="none" class="field field-lg">
-          <ion-input [type]="regShowPass ? 'text' : 'password'" placeholder="Contraseña (6+)" [(ngModel)]="regPass"></ion-input>
+          <ion-input [type]="regShowPass ? 'text' : 'password'"
+                     placeholder="Contraseña (8+ con may/min/num)"
+                     [(ngModel)]="regPass"></ion-input>
           <button class="suffix-badge btn-eye" type="button" slot="end" (click)="regShowPass=!regShowPass">
             <ion-icon [name]="regShowPass ? 'eye-off-outline' : 'eye-outline'"></ion-icon>
           </button>
         </ion-item>
 
         <ion-item lines="none" class="field field-lg">
-          <ion-input [type]="regShowPass ? 'text' : 'password'" placeholder="Repetir contraseña" [(ngModel)]="regPass2"></ion-input>
+          <ion-input [type]="regShowPass ? 'text' : 'password'"
+                     placeholder="Repetir contraseña"
+                     [(ngModel)]="regPass2"></ion-input>
           <span slot="end" class="suffix-badge"><ion-icon name="lock-closed-outline"></ion-icon></span>
         </ion-item>
 

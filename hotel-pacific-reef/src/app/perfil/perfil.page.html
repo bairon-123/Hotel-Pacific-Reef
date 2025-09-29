@@ -7,11 +7,11 @@
       </div>
 
       <nav class="menu">
-        <a routerLink="/home" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">Home</a>
+        <a routerLink="/home" routerLinkActive="active">Home</a>
         <a routerLink="/reservas" routerLinkActive="active">Reservas</a>
         <a routerLink="/perfil" routerLinkActive="active">Perfil</a>
         <span *ngIf="email" class="user-pill" [title]="email">Hola, <b>{{ email }}</b></span>
-        <a href="#" class="logout" (click)="logout($event)" aria-label="Cerrar sesión" title="Cerrar sesión">Cerrar sesión</a>
+        <a href="#" class="logout" (click)="logout($event)">Cerrar sesión</a>
       </nav>
     </div>
   </ion-toolbar>
@@ -50,14 +50,22 @@
             <h3>#{{ r.id }} • {{ r.nombreHabitacion }} ({{ r.tipo | titlecase }})</h3>
             <p>🗓 {{ r.llegada }} → {{ r.salida }} • {{ r.noches }} noche(s)</p>
             <p>💵 {{ currency(r.precioNoche) }} / noche • Total: <b>{{ currency(r.total) }}</b></p>
+
+            <!-- QR (si existe) -->
+            <div *ngIf="r.qrImage" class="qr-box" style="margin-top:10px;">
+              <img [src]="r.qrImage" alt="QR de la reserva #{{ r.id }}" style="width:140px; height:140px; object-fit:contain;"/>
+              <div class="qr-actions" style="margin-top:6px;">
+                <a [href]="r.qrImage" download="reserva-{{r.id}}.png">Descargar QR</a>
+              </div>
+            </div>
           </ion-label>
 
           <ion-buttons slot="end">
-            <ion-button fill="clear" color="primary" (click)="abrirEditar(r)" aria-label="Editar reserva" title="Editar reserva">
+            <ion-button fill="clear" color="primary" (click)="abrirEditar(r)">
               <ion-icon name="create-outline" slot="start"></ion-icon>
               Editar
             </ion-button>
-            <ion-button fill="clear" color="danger" (click)="borrarReserva(r)" aria-label="Eliminar reserva" title="Eliminar reserva">
+            <ion-button fill="clear" color="danger" (click)="borrarReserva(r)">
               <ion-icon name="trash-outline"></ion-icon>
             </ion-button>
           </ion-buttons>
@@ -73,7 +81,7 @@
   </ion-card>
 
   <!-- Modal: Editar fechas de la reserva -->
-  <ion-modal [isOpen]="editOpen" (willDismiss)="cerrarEditar()" [backdropDismiss]="false">
+  <ion-modal [isOpen]="editOpen" (willDismiss)="cerrarEditar()">
     <ng-template>
       <ion-header>
         <ion-toolbar>
@@ -91,8 +99,7 @@
             [(ngModel)]="editLlegada"
             [min]="minDate"
             [max]="maxDate"
-            presentation="date"
-            aria-label="Seleccionar nueva fecha de llegada">
+            presentation="date">
           </ion-datetime>
         </ion-item>
 
@@ -102,8 +109,7 @@
             [(ngModel)]="editSalida"
             [min]="minDate"
             [max]="maxDate"
-            presentation="date"
-            aria-label="Seleccionar nueva fecha de salida">
+            presentation="date">
           </ion-datetime>
         </ion-item>
 

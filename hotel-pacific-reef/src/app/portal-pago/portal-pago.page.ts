@@ -10,6 +10,7 @@ import {
 import { FormsModule, ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { AuthDbService, Habitacion } from '../services/auth-db.service';
+import QRCode from 'qrcode'; 
 
 @Component({
   selector: 'app-portal-pago',
@@ -38,8 +39,8 @@ export class PortalPagoPage implements OnInit {
   totalEstadia = 0;
 
   // Pago
-  opcionPago: 'completo' | 'parcial' | '' = '';         // ngModel en radios
-  metodoPago: 'transferencia' | 'tarjeta' | '' = '';    // ngModel en segment
+  opcionPago: 'completo' | 'parcial' | '' = '';
+  metodoPago: 'transferencia' | 'tarjeta' | '' = '';
   montoAPagar = 0;
 
   // Transferencia
@@ -99,8 +100,11 @@ export class PortalPagoPage implements OnInit {
 
     // Valores por defecto de pago
     this.opcionPago = 'completo';
-    this.calcularPago();           // setea montoAPagar
+    this.calcularPago();
     this.metodoPago = 'transferencia';
+
+    // Prefill email de contacto con el logueado
+    this.contactForm.patchValue({ email: this.currentEmail });
   }
 
   /* ============ UI helpers ============ */
@@ -122,37 +126,28 @@ export class PortalPagoPage implements OnInit {
   /* ============ Pago / Validaciones ============ */
   calcularPago() {
     if (!this.habitacion) { this.montoAPagar = 0; return; }
-    if (this.opcionPago === 'parcial') {
-      this.montoAPagar = Math.round(this.totalEstadia * 0.3);
-    } else {
-      this.montoAPagar = this.totalEstadia;
-    }
-    // Si el usuario eligió una opción de pago y no hay método seleccionado aún, por defecto transferencia
+    this.montoAPagar = (this.opcionPago === 'parcial')
+      ? Math.round(this.totalEstadia * 0.3)
+      : this.totalEstadia;
+
     if (this.opcionPago && !this.metodoPago) this.metodoPago = 'transferencia';
   }
 
   formularioValido(): boolean {
-    // Contacto
     if (!this.contactForm.valid) return false;
-
-    // Fechas y habitación
     if (!this.habitacion || !this.llegada || !this.salida || this.noches <= 0) return false;
-
-    // Opción de pago y método
     if (!this.opcionPago || !this.metodoPago) return false;
 
-    // Campos de método
     if (this.metodoPago === 'transferencia') {
       if (!this.comprobanteTransferencia.trim()) return false;
     } else if (this.metodoPago === 'tarjeta') {
       if (!/^\d{13,19}$/.test(this.tarjetaNumero.replace(/\s/g, ''))) return false;
       if (this.tarjetaNombre.trim().length < 2) return false;
-      if (!/^\d{2}\/\d{2}$/.test(this.tarjetaExpiracion)) return false; // MM/AA simple
+      if (!/^\d{2}\/\d{2}$/.test(this.tarjetaExpiracion)) return false;
       if (!/^\d{3,4}$/.test(this.tarjetaCVV)) return false;
     }
 
     return true;
-    // Nota: Disponibilidad final se revalida en confirmarPago()
   }
 
   async confirmarPago() {
@@ -163,13 +158,13 @@ export class PortalPagoPage implements OnInit {
     await loading.present();
 
     try {
-      // Revalidar disponibilidad antes de crear la reserva (concurrencia básica)
+      // Revalidar disponibilidad
       const hab = this.habitacion!;
       const ok = this.db.isRangeAvailable(hab.id, this.llegada!, this.salida!);
       if (!ok) throw new Error('La habitación ya no está disponible en esas fechas.');
 
-      // Crear reserva
-      this.db.addReservation({
+      // 1) Crear reserva (tu método ya retorna la reserva)
+      const reserva = this.db.addReservation({
         email: this.currentEmail!,
         habitacionId: hab.id,
         nombreHabitacion: hab.nombre,
@@ -181,10 +176,29 @@ export class PortalPagoPage implements OnInit {
         total: this.totalEstadia
       });
 
+      // 2) Armar payload del QR con info útil de check-in
+      const payload = JSON.stringify({
+        reservaId: reserva.id,
+        email: reserva.email,
+        habitacion: reserva.nombreHabitacion,
+        tipo: reserva.tipo,
+        llegada: reserva.llegada,
+        salida: reserva.salida,
+        noches: reserva.noches,
+        total: reserva.total,
+        generado: new Date().toISOString()
+      });
+
+      // 3) Generar imagen PNG (data URL)
+      const dataUrl = await QRCode.toDataURL(payload, { width: 280, margin: 1 });
+
+      // 4) Adjuntar QR a la reserva
+      this.db.attachQrToReservation(reserva.id, dataUrl, payload);
+
       await loading.dismiss();
       const done = await this.alert.create({
         header: 'Pago confirmado',
-        message: 'Tu reserva fue generada con éxito. Recibirás un correo con el detalle.',
+        message: 'Tu reserva fue generada con éxito. El QR quedó disponible en tu perfil.',
         buttons: [{ text: 'Ir a Perfil', handler: () => this.nav.navigateRoot('/perfil') }]
       });
       done.present();

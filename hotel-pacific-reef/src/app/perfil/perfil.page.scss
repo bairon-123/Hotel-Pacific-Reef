@@ -32,3 +32,29 @@ ion-card-header { background:#f9fafb; border-bottom:1px solid #e5e7eb; }
   justify-content: center;
   align-items: center;
 }
+
+
+/* codigo QR*/
+.qr-box {
+  margin-top: 8px;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+
+  img {
+    width: 140px;
+    height: 140px;
+    object-fit: contain;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    background: #fff;
+    padding: 6px;
+  }
+
+  .qr-actions a {
+    font-size: 12px;
+    color: var(--ion-color-primary);
+    text-decoration: none;
+  }
+}
