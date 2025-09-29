@@ -4,7 +4,8 @@ import { IonicModule, NavController, AlertController, ToastController } from '@i
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { AuthDbService, Reserva } from '../services/auth-db.service';
-
+import { TranslationService } from '../services/translation.service';
+import { TranslatePipe } from '../pipes/translate.pipe';
 
 @Component({
   selector: 'app-perfil',
@@ -12,9 +13,10 @@ import { AuthDbService, Reserva } from '../services/auth-db.service';
   imports: [
     CommonModule,
     IonicModule,
-    FormsModule,          // necesario para [(ngModel)] en ion-datetime
+    FormsModule,
     RouterLink,
-    RouterLinkActive
+    RouterLinkActive,
+    TranslatePipe
   ],
   templateUrl: './perfil.page.html',
   styleUrls: ['./perfil.page.scss']
@@ -22,6 +24,7 @@ import { AuthDbService, Reserva } from '../services/auth-db.service';
 export class PerfilPage implements OnInit {
   email: string | null = null;
   reservas: Reserva[] = [];
+  selectedLanguage = 'es';
 
   // Modal edición
   editOpen = false;
@@ -36,7 +39,8 @@ export class PerfilPage implements OnInit {
     private authDb: AuthDbService,
     private nav: NavController,
     private alert: AlertController,
-    private toast: ToastController
+    private toast: ToastController,
+    private translationService: TranslationService
   ) {}
 
   async ngOnInit() {
@@ -47,11 +51,21 @@ export class PerfilPage implements OnInit {
       return;
     }
 
+    // Cargar idioma actual
+    this.selectedLanguage = this.translationService.getCurrentLang();
+
     const hoy = new Date();
     this.minDate = this.toISO(this.addDays(hoy, 5));
     this.maxDate = this.toISO(this.addDays(hoy, 365));
 
     this.load();
+  }
+
+  // Método para cambiar idioma
+  changeLanguage() {
+    this.translationService.setLanguage(this.selectedLanguage);
+    // Recargar para aplicar cambios en toda la app
+    window.location.reload();
   }
 
   load() {
@@ -117,27 +131,27 @@ export class PerfilPage implements OnInit {
   async guardarEdicion() {
     if (!this.editReserva) return;
     try {
-      // Valida solapamientos y persiste en "BD"
       this.authDb.updateReservationDates(this.editReserva.id, this.editLlegada, this.editSalida);
       (await this.toast.create({ message: 'Reserva actualizada', duration: 1800, color: 'success' })).present();
       this.cerrarEditar();
-      this.load(); // refresca listado (y Admin podrá ver el cambio)
+      this.load();
     } catch (e: any) {
       this.editError = e?.message || 'No se pudo actualizar';
     }
   }
 
-  // trackBy para performance y evitar warnings
   trackById(index: number, item: Reserva) { return item.id; }
 
-  // Helpers fecha
   private toISO(d: Date) {
     const y = d.getFullYear();
     const m = String(d.getMonth() + 1).padStart(2, '0');
     const day = String(d.getDate()).padStart(2, '0');
     return `${y}-${m}-${day}`;
   }
+  
   private addDays(base: Date, days: number) {
-    const d = new Date(base); d.setDate(d.getDate() + days); return d;
+    const d = new Date(base); 
+    d.setDate(d.getDate() + days); 
+    return d;
   }
 }

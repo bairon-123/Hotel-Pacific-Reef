@@ -8,14 +8,13 @@
 
       <!-- Menú derecha -->
       <nav class="menu">
-        <a routerLink="/home" routerLinkActive="active">Home</a>
-        <a routerLink="/reservas" routerLinkActive="active">Reservas</a>
-        <a routerLink="/perfil" routerLinkActive="active">Perfil</a>
+        <a routerLink="/home" routerLinkActive="active">{{ 'header.home' | translate }}</a>
+        <a routerLink="/reservas" routerLinkActive="active">{{ 'header.reservas' | translate }}</a>
+        <a routerLink="/perfil" routerLinkActive="active">{{ 'header.perfil' | translate }}</a>
         <span *ngIf="currentEmail" class="user-pill" [title]="currentEmail">
-          Hola, <b>{{ currentEmail }}</b>
+          {{ 'header.hello' | translate }} <b>{{ currentEmail }}</b>
         </span>
-        <a href="#" class="logout" (click)="logout($event)" aria-label="Cerrar sesión">Cerrar sesión</a>
-        
+        <a href="#" class="logout" (click)="logout($event)" aria-label="Cerrar sesión">{{ 'header.logout' | translate }}</a>
       </nav>
     </div>
   </ion-toolbar>
@@ -25,10 +24,10 @@
   <section class="hero">
     <div class="container hero-inner">
       <div class="hero-copy">
-        <h1>Bienvenido al Paraíso</h1>
-        <p>Frente al mar, con estilo y comodidad. Vive una experiencia inolvidable en la costa del Pacífico.</p>
+        <h1>{{ 'home.welcome' | translate }}</h1>
+        <p>{{ 'home.subtitle' | translate }}</p>
         <div class="actions">
-          <ion-button size="large" color="primary" routerLink="/reservas">Reservar ahora</ion-button>
+          <ion-button size="large" color="primary" routerLink="/reservas">{{ 'home.bookNow' | translate }}</ion-button>
         </div>
       </div>
       <div class="hero-media">
@@ -38,70 +37,67 @@
     </div>
   </section>
 
-
   <section class="container section">
-    <h2 class="section-title">Servicios Exclusivos</h2>
+    <h2 class="section-title">{{ 'home.services' | translate }}</h2>
 
     <div class="cards">
       <ion-card class="svc">
         <img src="https://i.pinimg.com/originals/94/e4/ec/94e4ec33ec23e771e4d59cc844b6f0f1.jpg" alt="">
         <ion-card-header>
-          <ion-card-title>Habitaciones de lujo</ion-card-title>
-          <ion-card-subtitle>Vista mar • Premium</ion-card-subtitle>
+          <ion-card-title>{{ 'home.luxuryRooms' | translate }}</ion-card-title>
+          <ion-card-subtitle>{{ 'home.luxuryRooms.subtitle' | translate }}</ion-card-subtitle>
         </ion-card-header>
         <ion-card-content>
-          Descanso superior con ropa de 500 hilos y amenities eco-friendly.
+          {{ 'home.luxuryRooms.content' | translate }}
         </ion-card-content>
       </ion-card>
 
       <ion-card class="svc">
         <img src="https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?q=80&w=1200&auto=format&fit=crop" alt="">
         <ion-card-header>
-          <ion-card-title>Gastronomía internacional</ion-card-title>
-          <ion-card-subtitle>Chef residente</ion-card-subtitle>
+          <ion-card-title>{{ 'home.gastronomy' | translate }}</ion-card-title>
+          <ion-card-subtitle>{{ 'home.gastronomy.subtitle' | translate }}</ion-card-subtitle>
         </ion-card-header>
         <ion-card-content>
-          Sabores locales y de autor con productos frescos del día.
+          {{ 'home.gastronomy.content' | translate }}
         </ion-card-content>
       </ion-card>
 
       <ion-card class="svc">
         <img src="https://images.unsplash.com/photo-1508609349937-5ec4ae374ebf?q=80&w=1200&auto=format&fit=crop" alt="">
         <ion-card-header>
-          <ion-card-title>Spa & Wellness</ion-card-title>
-          <ion-card-subtitle>Relajo total</ion-card-subtitle>
+          <ion-card-title>{{ 'home.spa' | translate }}</ion-card-title>
+          <ion-card-subtitle>{{ 'home.spa.subtitle' | translate }}</ion-card-subtitle>
         </ion-card-header>
         <ion-card-content>
-          Circuito de aguas, masajes y sauna para renovar energías.
+          {{ 'home.spa.content' | translate }}
         </ion-card-content>
       </ion-card>
     </div>
   </section>
 
-
   <section class="container section two-col">
     <div class="col">
-      <h3>Sobre nosotros</h3>
+      <h3>{{ 'home.about' | translate }}</h3>
       <p>
-        Pacific Reef combina hospitalidad cálida con un diseño moderno junto al océano. Nuestro
-        equipo está enfocado en cada detalle para que tu estadía sea perfecta.
+        {{ 'home.about.content' | translate }}
       </p>
       <ul class="bullets">
-        <li>Check-in express con QR</li>
-        <li>Wi-Fi de alta velocidad</li>
-        <li>Traslados y tours personalizados</li>
+        <li>{{ 'home.about.bullet1' | translate }}</li>
+        <li>{{ 'home.about.bullet2' | translate }}</li>
+        <li>{{ 'home.about.bullet3' | translate }}</li>
       </ul>
     </div>
 
     <ion-card class="col contact">
       <ion-card-header>
-        <ion-card-title>Contáctanos</ion-card-title>
-        <ion-card-subtitle>Estamos para ti 24/7</ion-card-subtitle>
+        <ion-card-title>{{ 'home.contact' | translate }}</ion-card-title>
+        <ion-card-subtitle>{{ 'home.contact.subtitle' | translate }}</ion-card-subtitle>
       </ion-card-header>
       <ion-card-content>
-        <p>📍 Av. Costanera 123, Viña del Mar</p>
-        <p>📞 +56 9 1234 5678</p>
-        <ion-button expand="block" fill="outline" color="primary">Enviar mensaje</ion-button>
+        <p>{{ 'home.contact.address' | translate }}</p>
+        <p>{{ 'home.contact.phone' | translate }}</p>
+        <ion-button expand="block" fill="outline" color="primary">{{ 'home.contact.message' | translate }}</ion-button>
       </ion-card-content>
     </ion-card>
   </section>
@@ -109,7 +105,7 @@
   <!-- Footer -->
   <footer class="footer">
     <div class="container">
-      <p>© 2025 Hotel Pacific Reef — Todos los derechos reservados</p>
+      <p>{{ 'home.footer' | translate }}</p>
     </div>
   </footer>
 </ion-content>

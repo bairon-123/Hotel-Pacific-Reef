@@ -131,3 +131,17 @@ h2 { margin: 8px 2px 12px; font-size: 20px; color:#0f172a; }
 @media (max-width: 520px) {
   .card { width: min(94vw, 440px); }
 }
+.profile-google {
+  text-align: center;
+  margin-top: 15px;
+
+  img {
+    border-radius: 50%;
+    width: 60px;
+    height: 60px;
+  }
+
+  h3, p {
+    margin: 5px 0;
+  }
+}

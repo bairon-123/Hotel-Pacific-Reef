@@ -4,6 +4,8 @@ import { IonicModule, ToastController, NavController, LoadingController } from '
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { AuthDbService, Habitacion, RoomType } from '../services/auth-db.service';
+import { TranslationService } from '../services/translation.service';
+import { TranslatePipe } from '../pipes/translate.pipe';
 
 @Component({
   selector: 'app-reservas',
@@ -50,7 +52,9 @@ export class ReservasPage implements OnInit {
     private authDb: AuthDbService,
     private toast: ToastController,
     private nav: NavController,
-    private loading: LoadingController
+    private loading: LoadingController,
+    private translationService: TranslationService
+
   ) {}
 
   async ngOnInit() {

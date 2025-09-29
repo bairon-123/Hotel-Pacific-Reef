@@ -219,7 +219,6 @@ export class AuthDbService {
     return this.listReservations().filter(r => r.email === key);
   }
 
-  /** Agrega una reserva garantizando unicidad (sin solapamientos) y evitando duplicados exactos. */
   addReservation(data: Omit<Reserva, 'id' | 'createdAt' | 'email' | 'qrImage' | 'qrPayload'> & { email: string }): Reserva {
     const all = this.listReservations();
 
@@ -227,16 +226,14 @@ export class AuthDbService {
     const llegada = data.llegada;
     const salida  = data.salida;
 
-    // 1) Rango válido (noches calculadas por seguridad)
+
     const noches = Math.round((+new Date(salida) - +new Date(llegada)) / 86400000);
     if (noches <= 0) throw new Error('Rango de fechas inválido.');
 
-    // 2) Evitar solapamientos para la misma habitación
     if (!this.isRangeAvailable(data.habitacionId, llegada, salida)) {
       throw new Error('La habitación ya está reservada en esas fechas.');
     }
 
-    // 3) Evitar duplicado exacto (misma hab + mismas fechas + mismo usuario)
     const isExactDuplicate = all.some(r =>
       r.habitacionId === data.habitacionId &&
       r.llegada === llegada &&
@@ -245,7 +242,7 @@ export class AuthDbService {
     );
     if (isExactDuplicate) throw new Error('Esta reserva ya existe para tu cuenta.');
 
-    // 4) Crear
+
     const id = (all.reduce((mx, r) => Math.max(mx, r.id), 0) || 0) + 1;
     const createdAt = new Date().toISOString();
 
@@ -258,7 +255,7 @@ export class AuthDbService {
       tipo: data.tipo,
       llegada,
       salida,
-      noches, // (recalculated)
+      noches,
       precioNoche: data.precioNoche,
       total: data.total
     };
@@ -268,7 +265,6 @@ export class AuthDbService {
     return reserva;
   }
 
-  /** Adjunta imagen QR y payload a una reserva existente. */
   attachQrToReservation(id: number, qrImage: string, qrPayload: string): void {
     const all: Reserva[] = JSON.parse(localStorage.getItem(this.LS_RESERVAS) || '[]');
     const i = all.findIndex(r => r.id === id);

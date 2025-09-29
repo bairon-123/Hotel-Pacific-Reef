@@ -7,11 +7,11 @@
       </div>
 
       <nav class="menu">
-        <a routerLink="/home" routerLinkActive="active">Home</a>
-        <a routerLink="/reservas" routerLinkActive="active">Reservas</a>
-        <a routerLink="/perfil" routerLinkActive="active">Perfil</a>
-        <span *ngIf="email" class="user-pill" [title]="email">Hola, <b>{{ email }}</b></span>
-        <a href="#" class="logout" (click)="logout($event)">Cerrar sesión</a>
+        <a routerLink="/home" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">{{ 'header.home' | translate }}</a>
+        <a routerLink="/reservas" routerLinkActive="active">{{ 'header.reservas' | translate }}</a>
+        <a routerLink="/perfil" routerLinkActive="active">{{ 'header.perfil' | translate }}</a>
+        <span *ngIf="email" class="user-pill" [title]="email">{{ 'header.hello' | translate }} <b>{{ email }}</b></span>
+        <a href="#" class="logout" (click)="logout($event)" aria-label="Cerrar sesión" title="Cerrar sesión">{{ 'header.logout' | translate }}</a>
       </nav>
     </div>
   </ion-toolbar>
@@ -21,16 +21,28 @@
   <!-- Datos de la cuenta -->
   <ion-card>
     <ion-card-header>
-      <ion-card-title>Mi perfil</ion-card-title>
-      <ion-card-subtitle>Datos de tu cuenta</ion-card-subtitle>
+      <ion-card-title>{{ 'perfil.title' | translate }}</ion-card-title>
+      <ion-card-subtitle>{{ 'perfil.subtitle' | translate }}</ion-card-subtitle>
     </ion-card-header>
     <ion-card-content>
       <ion-list>
         <ion-item lines="full">
           <ion-label>
-            <h2>Correo</h2>
+            <h2>{{ 'perfil.email' | translate }}</h2>
             <p>{{ email }}</p>
           </ion-label>
+        </ion-item>
+        
+        <!-- Preferencia de idioma -->
+        <ion-item lines="full">
+          <ion-label>
+            <h2>{{ 'perfil.language' | translate }}</h2>
+            <p>{{ selectedLanguage === 'es' ? 'Español' : 'English' }}</p>
+          </ion-label>
+          <ion-select [(ngModel)]="selectedLanguage" (ionChange)="changeLanguage()" interface="action-sheet">
+            <ion-select-option value="es">Español</ion-select-option>
+            <ion-select-option value="en">English</ion-select-option>
+          </ion-select>
         </ion-item>
       </ion-list>
     </ion-card-content>
@@ -39,8 +51,8 @@
   <!-- Mis reservas -->
   <ion-card>
     <ion-card-header>
-      <ion-card-title>Mis reservas</ion-card-title>
-      <ion-card-subtitle>Guardadas en este dispositivo</ion-card-subtitle>
+      <ion-card-title>{{ 'perfil.reservas' | translate }}</ion-card-title>
+      <ion-card-subtitle>{{ 'perfil.reservas.subtitle' | translate }}</ion-card-subtitle>
     </ion-card-header>
 
     <ion-card-content>
@@ -48,14 +60,14 @@
         <ion-item *ngFor="let r of reservas; trackBy: trackById" class="res-item">
           <ion-label>
             <h3>#{{ r.id }} • {{ r.nombreHabitacion }} ({{ r.tipo | titlecase }})</h3>
-            <p>🗓 {{ r.llegada }} → {{ r.salida }} • {{ r.noches }} noche(s)</p>
-            <p>💵 {{ currency(r.precioNoche) }} / noche • Total: <b>{{ currency(r.total) }}</b></p>
+            <p>🗓 {{ r.llegada }} → {{ r.salida }} • {{ r.noches }} {{ r.noches === 1 ? ('reservas.nights' | translate) : ('reservas.nights' | translate) }}</p>
+            <p>💵 {{ currency(r.precioNoche) }} {{ 'reservas.perNight' | translate }} • {{ 'pago.totalStay' | translate }}: <b>{{ currency(r.total) }}</b></p>
 
-            <!-- QR (si existe) -->
+            <!-- QR  -->
             <div *ngIf="r.qrImage" class="qr-box" style="margin-top:10px;">
               <img [src]="r.qrImage" alt="QR de la reserva #{{ r.id }}" style="width:140px; height:140px; object-fit:contain;"/>
               <div class="qr-actions" style="margin-top:6px;">
-                <a [href]="r.qrImage" download="reserva-{{r.id}}.png">Descargar QR</a>
+                <a [href]="r.qrImage" download="reserva-{{r.id}}.png">{{ 'perfil.downloadQR' | translate }}</a>
               </div>
             </div>
           </ion-label>
@@ -63,7 +75,7 @@
           <ion-buttons slot="end">
             <ion-button fill="clear" color="primary" (click)="abrirEditar(r)">
               <ion-icon name="create-outline" slot="start"></ion-icon>
-              Editar
+              {{ 'perfil.edit' | translate }}
             </ion-button>
             <ion-button fill="clear" color="danger" (click)="borrarReserva(r)">
               <ion-icon name="trash-outline"></ion-icon>
@@ -74,7 +86,7 @@
 
       <ng-template #sinReservas>
         <ion-text color="medium">
-          Aún no tienes reservas. Ve a <a routerLink="/reservas">Reservas</a> para crear una.
+          {{ 'perfil.noReservas' | translate }} <a routerLink="/reservas">{{ 'perfil.reservasLink' | translate }}</a> {{ 'perfil.toCreate' | translate }}
         </ion-text>
       </ng-template>
     </ion-card-content>
@@ -85,16 +97,16 @@
     <ng-template>
       <ion-header>
         <ion-toolbar>
-          <ion-title>Editar fechas</ion-title>
+          <ion-title>{{ 'perfil.editDates' | translate }}</ion-title>
           <ion-buttons slot="end">
-            <ion-button (click)="cerrarEditar()">Cerrar</ion-button>
+            <ion-button (click)="cerrarEditar()">{{ 'login.close' | translate }}</ion-button>
           </ion-buttons>
         </ion-toolbar>
       </ion-header>
 
       <ion-content class="ion-padding">
         <ion-item>
-          <ion-label position="stacked">Nueva llegada</ion-label>
+          <ion-label position="stacked">{{ 'perfil.newArrival' | translate }}</ion-label>
           <ion-datetime
             [(ngModel)]="editLlegada"
             [min]="minDate"
@@ -104,7 +116,7 @@
         </ion-item>
 
         <ion-item>
-          <ion-label position="stacked">Nueva salida</ion-label>
+          <ion-label position="stacked">{{ 'perfil.newDeparture' | translate }}</ion-label>
           <ion-datetime
             [(ngModel)]="editSalida"
             [min]="minDate"
@@ -121,7 +133,7 @@
           class="ion-margin-top"
           [disabled]="!puedeGuardarEdicion()"
           (click)="guardarEdicion()">
-          Guardar cambios
+          {{ 'perfil.saveChanges' | translate }}
         </ion-button>
       </ion-content>
     </ng-template>
@@ -130,7 +142,7 @@
   <!-- Footer -->
   <footer class="footer">
     <div class="container">
-      <p>© 2025 Hotel Pacific Reef — Todos los derechos reservados</p>
+      <p>{{ 'home.footer' | translate }}</p>
     </div>
   </footer>
 </ion-content>

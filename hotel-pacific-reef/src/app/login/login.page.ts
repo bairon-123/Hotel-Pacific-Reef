@@ -119,7 +119,7 @@ export class LoginPage implements OnInit {
     return canvas.toDataURL('image/png');
   }
 
-checkCaptchaEmpty() {
+  checkCaptchaEmpty() {
   if (!(this.captchaInput || '').trim()) {
     this.captchaError = 'Debes ingresar el texto del CAPTCHA.';
   }
@@ -134,7 +134,7 @@ private validateCaptcha(): boolean {
     return false;
   }
 
-  // comparar sin espacios y sin sensibilidad a mayúsculas
+  // normalizamos para comparar (sin espacios y minúsculas)
   const norm = (s: string) => s.replace(/\s+/g, '').toLowerCase();
   if (norm(raw) !== norm(this.captchaText)) {
     this.captchaError = 'Captcha incorrecto. Inténtalo de nuevo.';
@@ -145,6 +145,7 @@ private validateCaptcha(): boolean {
   this.captchaError = '';
   return true;
 }
+
 
 
   /* =================== LOGIN =================== */

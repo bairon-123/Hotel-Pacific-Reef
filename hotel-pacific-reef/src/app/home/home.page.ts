@@ -4,25 +4,29 @@ import { FormsModule } from '@angular/forms';
 import { IonicModule, NavController } from '@ionic/angular';
 import { AuthDbService } from '../services/auth-db.service';
 import { RouterLink } from '@angular/router';
+import { TranslationService } from '../services/translation.service';
+import { TranslatePipe } from '../pipes/translate.pipe';
 
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [CommonModule, IonicModule, FormsModule, RouterLink],
+  imports: [CommonModule, IonicModule, FormsModule, RouterLink, TranslatePipe],
   templateUrl: './home.page.html',
   styleUrls: ['./home.page.scss']
 })
 export class HomePage implements OnInit {
   currentEmail: string | null = null;
 
-  constructor(private auth: AuthDbService, private nav: NavController) {}
+  constructor(
+    private auth: AuthDbService, 
+    private nav: NavController,
+    private translationService: TranslationService
+  ) {}
 
   async ngOnInit() {
-    // Si usas guards, esto puede ser opcional:
-    await this.auth.init?.(); // si el método existe (sólo web también lo tiene)
+    await this.auth.init?.();
     this.currentEmail = this.auth.getSessionEmail();
 
-    // Si no hay sesión, envía a login:
     if (!this.currentEmail) this.nav.navigateRoot('/login');
   }
 
