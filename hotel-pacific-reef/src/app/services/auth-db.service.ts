@@ -56,9 +56,9 @@ export class AuthDbService {
       const seed: Habitacion[] = [
         {
           id: 1, nombre: 'Básica Vista Jardín', tipo: 'basic', precioNoche: 45000, disponible: true, imgs: [
-            'https://images.unsplash.com/photo-1559599238-0cf17d6d3530?q=80&w=1200&auto=format&fit=crop',
-            'https://images.unsplash.com/photo-1493809842364-78817add7ffb?q=80&w=1200&auto=format&fit=crop',
-            'https://images.unsplash.com/photo-1551776235-dde6d4829808?q=80&w=1200&auto=format&fit=crop'
+            '',
+            'C:\\Users\\bairo\\hotel-pacific-reef\\hotel-pacific-reef\\src\\assets\\images\\imagenes hotel\\basic\\147653917.jpg',
+            ''
           ],
           camas: '1 cama Queen',
           capacidad: 2,
@@ -66,9 +66,9 @@ export class AuthDbService {
         },
         {
           id: 2, nombre: 'Medium Vista Mar Parcial', tipo: 'medium', precioNoche: 78000, disponible: true, imgs: [
-            'https://images.unsplash.com/photo-1560066984-138dadb4c035?q=80&w=1200&auto=format&fit=crop',
-            'https://images.unsplash.com/photo-1611892440504-42a792e24d32?q=80&w=1200&auto=format&fit=crop',
-            'https://images.unsplash.com/photo-1554995207-c18c203602cb?q=80&w=1200&auto=format&fit=crop'
+            'https://adx341sas12ff.enjoy.cl/BibliotecaMedios/MotorReserva/imagenes/habitacion_canal_1324.jpg',
+            'https://adx341sas12ff.enjoy.cl/BibliotecaMedios/MotorReserva/imagenes/habitacion_canal_1325.jpg',
+            'https://adx341sas12ff.enjoy.cl/BibliotecaMedios/MotorReserva/imagenes/habitacion_canal_1326.jpg'
           ],
           camas: '1 cama King',
           capacidad: 3,

@@ -75,17 +75,15 @@
     </ion-card-content>
   </ion-card>
 
-  <!-- Lista de habitaciones -->
+  <!-- Lista habitaciones -->
   <ion-card *ngFor="let h of filtradas">
-    <!-- Galería compacta -->
+
     <div class="gallery">
-      <!-- Imagen principal -->
       <img class="hero-img"
            [src]="getCover(h)"
            [alt]="h.nombre"
            (click)="openLightbox(h, getIndex(h))" />
 
-      <!-- Miniaturas -->
       <div class="thumbs" *ngIf="(h.imgs || []).length > 1">
         <button class="thumb"
                 *ngFor="let img of (h.imgs || []); index as i"
@@ -126,7 +124,7 @@
     </ion-card-content>
   </ion-card>
 
-  <!-- Lightbox -->
+
   <ion-modal [isOpen]="lightboxOpen" (didDismiss)="closeLightbox()">
     <div class="lightbox">
       <button class="lb-btn close" (click)="closeLightbox()" aria-label="{{ 'login.close' | translate }}">
