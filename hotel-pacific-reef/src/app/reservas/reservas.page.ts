@@ -27,23 +27,21 @@ export class ReservasPage implements OnInit {
   noches = 0;
   errorMsg = '';
 
-  // reglas de horario
+  
   private readonly CHECKIN_HOUR = 14;   // 14:00
   private readonly CHECKOUT_HOUR = 12;  // 12:00
 
-  // filtros
   tipoSeleccionado: '' | RoomType = '';
   soloDisponibles = true;
 
-  // data
+
   habitaciones: Habitacion[] = [];
   filtradas: Habitacion[] = [];
 
-  // galería por tarjeta
   private fallbackImg = 'https://dummyimage.com/1200x700/eee/aaa&text=Sin+foto';
   selectedIndex: Record<number, number> = {};
 
-  // lightbox
+
   lightboxOpen = false;
   lightboxImgs: string[] = [];
   lightboxIndex = 0;
@@ -66,7 +64,7 @@ export class ReservasPage implements OnInit {
       return;
     }
 
-    // fechas: min 5 días desde hoy, max 365 días
+    // fecha mini y max
 
     const hoy = new Date();
     this.minDate = this.toISO(this.addDays(hoy, 5));
@@ -76,14 +74,15 @@ export class ReservasPage implements OnInit {
     this.filtrar();
   }
 
-  /* ======= Sesión ======= */
+  // sesion 
+
   logout(ev?: Event) {
     ev?.preventDefault();
     this.authDb.logout();
     this.nav.navigateRoot('/login');
   }
 
-  /* ======= Fechas / Filtros ======= */
+  // fechas
  onFechaChange() {
     this.errorMsg = '';
     this.noches = 0;
@@ -98,7 +97,7 @@ export class ReservasPage implements OnInit {
         return;
       }
 
-    // Calculate nights correctly
+    // Calcular noches
     const start = new Date(this.llegada);
     const end = new Date(this.salida);
     const timeDiff = end.getTime() - start.getTime();
@@ -116,7 +115,7 @@ async reservar(h: Habitacion) {
   const overlay = await this.loading.create({ message: this.translationService.getTranslation('reservas.preparingPayment') });
   await overlay.present();
 
-  // Lleva datos a portal-pago
+  // Lleva datos a portal pago
   await overlay.dismiss();
   this.nav.navigateForward('/portal-pago', {
     state: {
@@ -128,11 +127,10 @@ async reservar(h: Habitacion) {
   });
 }
 
-  // ===== Helpers fechas =====
-  private asCheckIn(isoDate: string)  { return `${isoDate}T14:00:00`; }
+/* ======= Habitaciones ======= */
+private asCheckIn(isoDate: string)  { return `${isoDate}T14:00:00`; }
   private asCheckOut(isoDate: string) { return `${isoDate}T12:00:00`; }
 
-  /** Noches = diferencia de días entre fechas (sin horas) */
   private diffNights(startISO: string, endISO: string) {
     const s = new Date(startISO + 'T00:00:00');
     const e = new Date(endISO   + 'T00:00:00');
@@ -140,17 +138,15 @@ async reservar(h: Habitacion) {
     return Math.max(0, Math.round((e.getTime() - s.getTime()) / MS));
   }
 
-  /** Noches = ceil( (salida 12:00 - llegada 14:00) / 24h ) */
   private calcNoches(isoStart: string, isoEnd: string): number {
     const inDate  = this.composeLocal(isoStart, this.CHECKIN_HOUR, 0);
     const outDate = this.composeLocal(isoEnd,   this.CHECKOUT_HOUR, 0);
     const diffMs = outDate.getTime() - inDate.getTime();
     const dayMs = 1000 * 60 * 60 * 24;
-    // si el usuario eligió días consecutivos: 22h -> ceil = 1 noche
+
     return Math.max(0, Math.ceil(diffMs / dayMs));
   }
 
-  /** Construye Date local a partir de YYYY-MM-DD y hora:minuto */
   private composeLocal(iso: string, hour: number, minute: number): Date {
     const [y, m, d] = iso.split('-').map(Number);
     return new Date(y, (m - 1), d, hour, minute, 0);
@@ -169,10 +165,6 @@ filtrar() {
   this.filtradas = list;
 }
 
-  /* ======= Reserva ======= */
-
-
-  /* ======= Galería (tarjeta) ======= */
   getIndex(h: Habitacion): number {
     const i = this.selectedIndex[h.id];
     return typeof i === 'number' ? i : 0;
@@ -188,7 +180,9 @@ filtrar() {
     this.selectedIndex[h.id] = i;
   }
 
-  /* ======= Lightbox ======= */
+
+  
+
   openLightbox(h: Habitacion, startIndex = 0): void {
     this.lightboxImgs = (h.imgs && h.imgs.length) ? h.imgs : [this.fallbackImg];
     this.lightboxIndex = Math.min(Math.max(startIndex, 0), this.lightboxImgs.length - 1);
@@ -217,7 +211,7 @@ filtrar() {
     this.zoomed = !this.zoomed;
   }
 
-  /* ======= Helpers ======= */
+  
   private toISO(d: Date) {
     const y = d.getFullYear();
     const m = String(d.getMonth() + 1).padStart(2, '0');

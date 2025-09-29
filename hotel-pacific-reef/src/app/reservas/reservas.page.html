@@ -19,7 +19,6 @@
 
 <ion-content [fullscreen]="true" class="site-content ion-padding">
 
-  <!-- Filtros -->
   <ion-card>
     <ion-card-header>
       <ion-card-title>{{ 'reservas.search' | translate }}</ion-card-title>
@@ -75,7 +74,8 @@
     </ion-card-content>
   </ion-card>
 
-  <!-- Lista habitaciones -->
+  <!-- Listado de habitaciones -->
+
   <ion-card *ngFor="let h of filtradas">
 
     <div class="gallery">
@@ -162,6 +162,9 @@
       </div>
     </div>
   </ion-modal>
+
+
+
 
   <!-- Footer -->
   <footer class="footer">

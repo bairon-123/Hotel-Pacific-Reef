@@ -82,7 +82,8 @@ export class PortalPagoPage implements OnInit {
     this.contactForm.patchValue({ email: this.currentEmail });
   }
 
-  /* ================= UI helpers ================= */
+  // helpers UI
+  
   currency(v?: number | null) {
     const n = Number(v ?? 0);
     return n.toLocaleString('es-CL', { style: 'currency', currency: 'CLP', maximumFractionDigits: 0 });
@@ -93,7 +94,7 @@ export class PortalPagoPage implements OnInit {
   }
   logout(ev?: Event) { ev?.preventDefault(); this.db.logout(); this.nav.navigateRoot('/login'); }
 
-  /* ================= Pago ================= */
+  // lógica de pago
   calcularPago() {
     if (!this.habitacion) { this.montoAPagar = 0; return; }
     this.montoAPagar = (this.opcionPago === 'parcial') ? Math.round(this.totalEstadia * 0.3) : this.totalEstadia;
@@ -136,7 +137,7 @@ export class PortalPagoPage implements OnInit {
         total: this.totalEstadia
       });
 
-      // Texto “humano” para el QR (también lo guardamos como payload)
+      // Generar código QR con los datos de la reserva
       const payload =
         `HOTEL PACIFIC REEF\n` +
         `Reserva #${reserva.id}\n` +
@@ -148,13 +149,12 @@ export class PortalPagoPage implements OnInit {
         `Total  : ${this.currency(reserva.total)}\n` +
         `Generado: ${this.nowLocal()}`;
 
-      // QR “puro” (dataURL)
       const qrOnlyUrl = await QRCode.toDataURL(payload, { width: 360, margin: 1 });
 
-      // *** NUEVO: poster con QR + datos ***
+
       const posterUrl = await this.renderQrPoster(qrOnlyUrl, reserva);
 
-      // Guardamos el poster en la reserva (se verá en Perfil)
+
       this.db.attachQrToReservation(reserva.id, posterUrl, payload);
 
       await loading.dismiss();
@@ -176,7 +176,7 @@ export class PortalPagoPage implements OnInit {
     }
   }
 
-  /* ============ Helpers para el poster ============ */
+  //utilidades 
   private titlecase(s: string) { return s ? s.charAt(0).toUpperCase() + s.slice(1) : s; }
   private fmtDate(iso: string) {
     const [y,m,d] = iso.split('-').map(Number);
@@ -204,20 +204,18 @@ export class PortalPagoPage implements OnInit {
     ctx.closePath();
   }
 
-  /** Dibuja una imagen tipo tarjeta: banner + datos + QR */
+
   private async renderQrPoster(qrDataUrl: string, reserva: any): Promise<string> {
     const W = 1000, H = 600;
     const canvas = document.createElement('canvas');
     canvas.width = W; canvas.height = H;
     const ctx = canvas.getContext('2d')!;
 
-    // fondo degradado
     const g = ctx.createLinearGradient(0, 0, W, H);
-    g.addColorStop(0, '#e0f2fe'); // azul claro
-    g.addColorStop(1, '#f1f5f9'); // gris muy claro
+    g.addColorStop(0, '#e0f2fe'); 
+    g.addColorStop(1, '#f1f5f9'); 
     ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
 
-    // tarjeta blanca
     const pad = 32;
     const cardX = pad, cardY = pad, cardW = W - pad*2, cardH = H - pad*2;
     ctx.shadowColor = 'rgba(0,0,0,.15)'; ctx.shadowBlur = 18; ctx.shadowOffsetY = 6;
@@ -226,7 +224,6 @@ export class PortalPagoPage implements OnInit {
 
     ctx.shadowColor = 'transparent';
 
-    // “logo” simple (círculo con H)
     const logoX = cardX + 26, logoY = cardY + 26, logoR = 22;
     ctx.beginPath(); ctx.arc(logoX+logoR, logoY+logoR, logoR, 0, Math.PI*2);
     ctx.fillStyle = '#0ea5e9'; ctx.fill();
@@ -234,12 +231,12 @@ export class PortalPagoPage implements OnInit {
     ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
     ctx.fillText('H', logoX+logoR, logoY+logoR);
 
-    // título
+ 
     ctx.fillStyle = '#0f172a'; ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
     ctx.font = '700 26px system-ui,sans-serif';
     ctx.fillText('Hotel Pacific Reef — Confirmación de Reserva', logoX + logoR*2 + 16, logoY + logoR + 6);
 
-    // datos (columna izquierda)
+  
     const leftX = cardX + 34;
     let y = cardY + 110;
     const lh = 30;
@@ -261,14 +258,13 @@ export class PortalPagoPage implements OnInit {
     line('Noches',  String(reserva.noches));
     line('Total',    this.currency(reserva.total));
 
-    // QR (columna derecha)
     const qrImg = await this.loadImage(qrDataUrl);
     const qrSize = 320;
     const qrX = cardX + cardW - qrSize - 40;
     const qrY = cardY + 120;
     ctx.drawImage(qrImg, qrX, qrY, qrSize, qrSize);
 
-    // pie
+ 
     ctx.fillStyle = '#64748b';
     ctx.font = '400 14px system-ui,sans-serif';
     ctx.fillText(`Generado: ${this.nowLocal()}`, leftX, cardY + cardH - 28);

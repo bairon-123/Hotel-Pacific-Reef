@@ -1,6 +1,9 @@
 import { Injectable } from '@angular/core';
 
-/* ========= Tipos ========= */
+
+
+
+
 export type RoomType = 'basic' | 'medium' | 'premium';
 
 export type UserRow = {

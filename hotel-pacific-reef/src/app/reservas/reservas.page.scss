@@ -1,9 +1,7 @@
-/* ====== Fondo general ====== */
 .site-content {
   --background: #f8fafc;
 }
 
-/* ====== Header / Navbar ====== */
 .navbar {
   max-width: 1100px;
   margin: 0 auto;
@@ -39,7 +37,6 @@
 .user-pill { background:#eef2ff; color:#3730a3; padding:6px 10px; border-radius:999px; font-size:12px; }
 .logout { color:#ef4444 !important; }
 
-/* ====== Tarjetas ====== */
 ion-card {
   margin: 16px auto;
   max-width: 860px;
@@ -48,7 +45,6 @@ ion-card {
   overflow: hidden;
 }
 
-/* ====== Filtros en grilla (dos columnas) ====== */
 .filters-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(220px, 1fr));
@@ -61,7 +57,6 @@ ion-card {
 }
 ion-item ion-datetime { width: 100%; }
 
-/* ====== Galería compacta por tarjeta ====== */
 .gallery {
   padding: 12px 12px 0;
 }
@@ -104,7 +99,6 @@ ion-item ion-datetime { width: 100%; }
   display: block;
 }
 
-/* ====== Texto / badges ====== */
 .price-line {
   display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin: 8px 0 10px;
 }
@@ -113,7 +107,6 @@ ion-item ion-datetime { width: 100%; }
 }
 ion-button { margin-top: 6px; }
 
-/* ====== Lightbox (ion-modal) ====== */
 .lightbox {
   position: relative;
   width: 100%;
@@ -121,7 +114,7 @@ ion-button { margin-top: 6px; }
   background: #0b1220;
   color: #fff;
   display: grid;
-  grid-template-rows: 1fr auto; /* stage + thumbs */
+  grid-template-rows: 1fr auto;
 }
 
 .stage {
@@ -130,7 +123,7 @@ ion-button { margin-top: 6px; }
   height: calc(100vh - 130px);
   display: grid;
   place-items: center;
-  overflow: auto; /* para desplazar cuando hay zoom */
+  overflow: auto;
   -webkit-overflow-scrolling: touch;
 }
 
@@ -194,12 +187,7 @@ ion-button { margin-top: 6px; }
   display: block;
 }
 
-/* ====== Footer ====== */
-.footer { background:#0f172a; color:#cbd5e1; padding:18px 0; margin-top:24px; }
-.footer .container {
-  max-width: 1100px; margin:0 auto; padding:0 12px;
-  display:flex; justify-content:space-between; align-items:center; gap:16px;
-}
+
 
 /* ====== Responsivo ====== */
 @media (max-width: 860px) {
@@ -209,4 +197,11 @@ ion-button { margin-top: 6px; }
 @media (max-width: 480px) {
   .hero-img { height: 210px; }
   .thumbs .thumb img { width: 70px; height: 50px; }
+}
+
+/* ====== Footer ====== */
+.footer { background:#0f172a; color:#cbd5e1; padding:18px 0; margin-top:24px; }
+.footer .container {
+  max-width: 1100px; margin:0 auto; padding:0 12px;
+  display:flex; justify-content:space-between; align-items:center; gap:16px;
 }

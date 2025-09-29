@@ -110,6 +110,16 @@ const TRANSLATIONS: Translations = {
     'pago.cardCVV': 'CVV *',
     'pago.confirm': 'Confirmar y Pagar',
     'pago.confirmNote': '* Al confirmar, recibirá un correo electrónico con los detalles de su reserva.',
+    'pago.errorCompletingPayment': 'Error completando el pago. Por favor, inténtelo de nuevo.',
+    'pago.error': 'Error ocurrido durante el proceso de pago. Por favor, verifique sus datos e inténtelo de nuevo.',
+    'pago.goToProfile': 'Ir al perfil',
+    'pago.bookingGenerated': 'Reserva generada con éxito!',
+    'pago.paymentConfirmed': 'Pago confirmado con éxito!',
+    'pago.receiptRequired': 'Número de comprobante es requerido para la transferencia.',
+    'pago.processingPayment': 'Procesando su pago, por favor espere...',
+    'pago.errorReviewFields': 'Hubo un error. Por favor revise los campos e inténtelo de nuevo.',
+    'pago.errorIncompleteData': 'Datos incompletos. Por favor complete todos los campos requeridos.',
+
 
     // Login
     'login.title': 'Inicia sesión',
@@ -225,6 +235,17 @@ const TRANSLATIONS: Translations = {
     'pago.cardCVV': 'CVV *',
     'pago.confirm': 'Confirm and Pay',
     'pago.confirmNote': '* By confirming, you will receive an email with the details of your reservation.',
+    'pago.errorCompletingPayment': 'Error completing payment. Please try again.',
+    'pago.error': 'Error occurred during payment process. Please check your details and try again.',
+    'pago.goToProfile': 'Go to Profile',
+    'pago.bookingGenerated': 'Booking generated successfully!',
+    'pago.paymentConfirmed': 'Payment confirmed successfully!', 
+    'pago.receiptRequired': 'Receipt number is required for transfer.',
+    'pago.processingPayment': 'Processing your payment, please wait...',
+    'pago.errorReviewFields': 'There was an error. Please review the fields and try again.',
+    'pago.errorIncompleteData': 'Incomplete data. Please fill all required fields.',
+
+
 
     // Login
     'login.title': 'Log in',
@@ -248,7 +269,6 @@ export class TranslationService {
   public currentLang$ = this.currentLang.asObservable();
 
   constructor() {
-    // Cargar idioma guardado
     const savedLang = localStorage.getItem('language') || 'es';
     this.currentLang.next(savedLang);
   }

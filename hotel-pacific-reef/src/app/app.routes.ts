@@ -7,13 +7,13 @@ export const routes: Routes = [
 
   { path: 'login', loadComponent: () => import('./login/login.page').then(m => m.LoginPage) },
 
-  // Protege páginas para usuarios logueados
+  // usuarios
   { path: 'home',        loadComponent: () => import('./home/home.page').then(m => m.HomePage) },
   { path: 'reservas',    loadComponent: () => import('./reservas/reservas.page').then(m => m.ReservasPage), canActivate: [authGuard] },
   { path: 'portal-pago', loadComponent: () => import('./portal-pago/portal-pago.page').then(m => m.PortalPagoPage), canActivate: [authGuard] },
   { path: 'perfil',      loadComponent: () => import('./perfil/perfil.page').then(m => m.PerfilPage), canActivate: [authGuard] },
 
-  // *** ADMIN ***
+  //admin
   { path: 'admin',                loadComponent: () => import('./pages/admin/admin.page').then(m => m.AdminPage), canActivate: [adminGuard] },
   { path: 'admin/usuarios',       loadComponent: () => import('./pages/admin-usuarios/admin-usuarios.page').then(m => m.AdminUsuariosPage), canActivate: [adminGuard] },
   { path: 'admin/reservas',       loadComponent: () => import('./pages/admin-reservas/admin-reservas.page').then(m => m.AdminReservasPage), canActivate: [adminGuard] },
