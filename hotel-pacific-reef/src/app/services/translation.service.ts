@@ -41,6 +41,16 @@ const TRANSLATIONS: Translations = {
     'home.contact.phone': '📞 +56 9 1234 5678',
     'home.contact.message': 'Enviar mensaje',
     'home.footer': '© 2025 Hotel Pacific Reef — Todos los derechos reservados',
+    
+
+    // clima 
+    'weather.title': 'Clima actual',
+    'weather.useLocation': 'Usar mi ubicación',
+    'weather.temperature': 'Temperatura',
+    'weather.humidity': 'Humedad',
+    'weather.updated': 'Actualizado',
+    'weather.error': 'No se pudo cargar el clima.',
+    
 
     // Reservas Page
     'reservas.search': 'Buscar disponibilidad',
@@ -166,6 +176,17 @@ const TRANSLATIONS: Translations = {
     'home.contact.phone': '📞 +56 9 1234 5678',
     'home.contact.message': 'Send message',
     'home.footer': '© 2025 Hotel Pacific Reef — All rights reserved',
+
+    // clima 
+    'weather.title': 'Current weather',
+    'weather.useLocation': 'Use my location',
+    'weather.temperature': 'Temperature',
+    'weather.humidity': 'Humidity',
+    'weather.updated': 'Updated',
+    'weather.error': 'Could not load weather.',
+
+
+    
 
     // Reservas Page
     'reservas.search': 'Search availability',

@@ -4,7 +4,6 @@ import { authGuard }  from './auth.guard';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'home', pathMatch: 'full' },
-
   { path: 'login', loadComponent: () => import('./login/login.page').then(m => m.LoginPage) },
 
   // usuarios
@@ -12,6 +11,7 @@ export const routes: Routes = [
   { path: 'reservas',    loadComponent: () => import('./reservas/reservas.page').then(m => m.ReservasPage), canActivate: [authGuard] },
   { path: 'portal-pago', loadComponent: () => import('./portal-pago/portal-pago.page').then(m => m.PortalPagoPage), canActivate: [authGuard] },
   { path: 'perfil',      loadComponent: () => import('./perfil/perfil.page').then(m => m.PerfilPage), canActivate: [authGuard] },
+  
 
   //admin
   { path: 'admin',                loadComponent: () => import('./pages/admin/admin.page').then(m => m.AdminPage), canActivate: [adminGuard] },

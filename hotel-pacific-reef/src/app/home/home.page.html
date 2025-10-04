@@ -6,7 +6,6 @@
         <span>Hotel Pacific Reef</span>
       </div>
 
-      <!-- Menú derecha -->
       <nav class="menu">
         <a routerLink="/home" routerLinkActive="active">{{ 'header.home' | translate }}</a>
         <a routerLink="/reservas" routerLinkActive="active">{{ 'header.reservas' | translate }}</a>
@@ -14,13 +13,51 @@
         <span *ngIf="currentEmail" class="user-pill" [title]="currentEmail">
           {{ 'header.hello' | translate }} <b>{{ currentEmail }}</b>
         </span>
-        <a href="#" class="logout" (click)="logout($event)" aria-label="Cerrar sesión">{{ 'header.logout' | translate }}</a>
+        <a href="#" class="logout" (click)="logout($event)" aria-label="Cerrar sesión">
+          {{ 'header.logout' | translate }}
+        </a>
       </nav>
     </div>
   </ion-toolbar>
 </ion-header>
 
 <ion-content [fullscreen]="true" class="site-content">
+
+
+  <!--clima -->
+  <ion-card>
+    <ion-card-header>
+      <ion-card-title>{{ 'weather.title' | translate }}</ion-card-title>
+      <ion-card-subtitle>{{ ubicacionLabel }}</ion-card-subtitle>
+    </ion-card-header>
+
+    <ion-card-content>
+      <div class="actions">
+        <ion-button size="small" (click)="cargarCiudad('Santiago')">Santiago</ion-button>
+        <ion-button size="small" (click)="cargarCiudad('Valdivia')">Valdivia</ion-button>
+        <ion-button size="small" (click)="cargarCiudad('Arica')">Arica</ion-button>
+        <ion-button size="small" fill="outline" (click)="usarMiUbicacion()">{{ 'weather.useLocation' | translate }}</ion-button>
+      </div>
+
+      <ion-spinner *ngIf="isLoading" name="dots"></ion-spinner>
+      <ion-text color="danger" *ngIf="!isLoading && error">{{ error | translate }}</ion-text>
+
+      <div class="wx" *ngIf="!isLoading && !error && clima">
+        <div class="wx-line">
+          <span>{{ 'weather.temperature' | translate }}:</span>
+          <b>{{ fmtTemp(clima.temperature) }}</b>
+        </div>
+        <div class="wx-line">
+          <span>{{ 'weather.humidity' | translate }}:</span>
+          <b>{{ fmtHum(clima.humidity) }}</b>
+        </div>
+        <div class="wx-time" *ngIf="clima.time">
+          {{ 'weather.updated' | translate }}: {{ clima.time | date:'short' }}
+        </div>
+      </div>
+    </ion-card-content>
+  </ion-card>
+  
   <section class="hero">
     <div class="container hero-inner">
       <div class="hero-copy">
