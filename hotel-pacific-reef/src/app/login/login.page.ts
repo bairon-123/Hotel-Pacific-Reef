@@ -202,9 +202,23 @@ private validateCaptcha(): boolean {
     }
   }
 
-  forgot(ev: Event) { ev.preventDefault(); this.msg('Recuperación disponible pronto.'); }
+  async forgot(ev: Event) {
+  ev.preventDefault();
 
-  /* =================== HELPERS =================== */
+  if (!this.email.trim()) {
+    return this.msg('Por favor, ingresa tu correo electrónico antes de continuar.', 'medium');
+  }
+
+  // Simula el proceso de recuperación (puedes reemplazar con una llamada real a tu servicio)
+  this.isLoading = true;
+  setTimeout(async () => {
+    this.isLoading = false;
+    await this.msg('Se ha enviado un correo a tu dirección para recuperar la contraseña.', 'success');
+  }, 1500);
+}
+
+  // simple email validation 
+
   private validEmail(v: string): boolean {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim());
   }
