@@ -11,6 +11,8 @@ import { AuthDbService } from '../services/auth-db.service';
   templateUrl: './login.page.html',
   styleUrls: ['./login.page.scss']
 })
+
+
 export class LoginPage implements OnInit {
   email = '';
   password = '';
@@ -178,6 +180,7 @@ export class LoginPage implements OnInit {
       this.nav.navigateRoot('/home');
     }
   }
+  
 
   fillAdminEmail() {
     this.email = 'admin@pacificreef.cl';

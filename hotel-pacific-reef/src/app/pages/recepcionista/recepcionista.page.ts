@@ -23,6 +23,7 @@ export class RecepcionistaPage implements OnInit {
     private nav: NavController,
     private toast: ToastController
   ) {}
+  
 
   async ngOnInit() {
     await this.authDb.init();
@@ -102,3 +103,5 @@ export class RecepcionistaPage implements OnInit {
     this.nav.navigateRoot('/login');
   }
 }
+
+

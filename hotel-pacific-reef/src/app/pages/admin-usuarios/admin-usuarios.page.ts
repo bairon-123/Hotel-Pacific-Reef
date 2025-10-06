@@ -52,7 +52,9 @@ export class AdminUsuariosPage implements OnInit {
         { name: 'email', type: 'email', placeholder: 'correo@ejemplo.com' },
         { name: 'name',  type: 'text',  placeholder: 'Nombre (opcional)' },
         { name: 'pass',  type: 'password', placeholder: 'Contraseña (6+)' },
+        { name: 'confirmPass',  type: 'password', placeholder: 'Confirmar contraseña' },
         { name: 'isAdmin', type: 'checkbox', label: 'Hacer administrador', checked: false }
+
       ],
       buttons: [
         { text: 'Cancelar', role: 'cancel' },
