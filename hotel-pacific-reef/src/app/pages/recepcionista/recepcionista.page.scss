@@ -1,0 +1,65 @@
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 16px;
+  margin-top: 20px;
+}
+
+.action-card {
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  }
+}
+
+.big-icon {
+  font-size: 48px;
+  color: var(--ion-color-primary);
+  margin-bottom: 12px;
+}
+
+.site-header {
+  .navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 16px;
+  }
+
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 600;
+  }
+
+  .menu {
+    display: flex;
+    gap: 20px;
+    align-items: center;
+
+    a {
+      text-decoration: none;
+      color: var(--ion-color-dark);
+      padding: 8px 12px;
+      border-radius: 6px;
+      transition: background-color 0.2s ease;
+
+      &.active {
+        background-color: var(--ion-color-primary);
+        color: white;
+      }
+
+      &:hover:not(.active) {
+        background-color: var(--ion-color-light);
+      }
+
+      &.logout {
+        color: var(--ion-color-danger);
+      }
+    }
+  }
+}

@@ -1,9 +1,5 @@
 import { Injectable } from '@angular/core';
 
-
-
-
-
 export type RoomType = 'basic' | 'medium' | 'premium';
 
 export type UserRow = {
@@ -11,7 +7,9 @@ export type UserRow = {
   password_hash: string;
   created_at: string;      
   name?: string;
-  role?: 'admin' | 'user';
+  role?: 'admin' | 'user' | 'recepcionista'; // ← Nuevo rol
+  telefono?: string;
+  turno?: string; // mañana, tarde, noche
 };
 
 export type Reserva = {
@@ -28,6 +26,23 @@ export type Reserva = {
   createdAt: string;     
   qrImage?: string;        
   qrPayload?: string;      
+  
+  // Nuevos campos para recepcionista
+  estadoPago: 'pagado' | 'parcial' | 'pendiente';
+  porcentajePagado: number;
+  qrUsado: boolean;
+  fechaCheckin?: string;
+  fechaCheckout?: string;
+  recepcionistaCheckin?: string;
+  recepcionistaCheckout?: string;
+  observaciones?: string;
+  datosHuesped?: {
+    nombreCompleto: string;
+    telefono: string;
+    email: string;
+    documento?: string;
+  };
+  habitacionAsignada?: number;
 };
 
 export type Habitacion = {
@@ -41,6 +56,16 @@ export type Habitacion = {
   capacidad?: number;
   camas?: string;
   amenities?: string[];
+  estado?: 'disponible' | 'ocupada' | 'limpieza' | 'mantenimiento'; // ← Nuevo campo
+};
+
+export type RecepcionistaLog = {
+  email: string;
+  accion: string;
+  timestamp: string;
+  sessionId: string | null;
+  reservaId?: number;
+  detalles?: any;
 };
 
 @Injectable({ providedIn: 'root' })
@@ -49,15 +74,23 @@ export class AuthDbService {
   private readonly LS_SESSION  = 'session_email';
   private readonly LS_RESERVAS = 'reservas_hotel_v1';
   private readonly LS_ROOMS    = 'rooms_hotel_v1';
-
+  private readonly LS_LOGS     = 'recepcionista_logs_v1';
 
   async init(): Promise<void> {
     if (!localStorage.getItem(this.LS_USERS))    localStorage.setItem(this.LS_USERS, JSON.stringify([]));
     if (!localStorage.getItem(this.LS_RESERVAS)) localStorage.setItem(this.LS_RESERVAS, JSON.stringify([]));
+    if (!localStorage.getItem(this.LS_LOGS))     localStorage.setItem(this.LS_LOGS, JSON.stringify([]));
+    
     if (!localStorage.getItem(this.LS_ROOMS)) {
       const seed: Habitacion[] = [
         {
-          id: 1, nombre: 'Básica Vista Jardín', tipo: 'basic', precioNoche: 45000, disponible: true, imgs: [
+          id: 1, 
+          nombre: 'Básica Vista Jardín', 
+          tipo: 'basic', 
+          precioNoche: 45000, 
+          disponible: true, 
+          estado: 'disponible',
+          imgs: [
             'https://adx341sas12ff.enjoy.cl/BibliotecaMedios/MotorReserva/imagenes/habitacion_canal_1324.jpg',
             'https://adx341sas12ff.enjoy.cl/BibliotecaMedios/MotorReserva/imagenes/habitacion_canal_1325.jpg',
             'https://adx341sas12ff.enjoy.cl/BibliotecaMedios/MotorReserva/imagenes/habitacion_canal_1326.jpg'
@@ -67,7 +100,13 @@ export class AuthDbService {
           amenities: ['TV', 'Wi-Fi', 'Baño privado']
         },
         {
-          id: 2, nombre: 'Medium Vista Mar Parcial', tipo: 'medium', precioNoche: 78000, disponible: true, imgs: [
+          id: 2, 
+          nombre: 'Medium Vista Mar Parcial', 
+          tipo: 'medium', 
+          precioNoche: 78000, 
+          disponible: true, 
+          estado: 'disponible',
+          imgs: [
             'https://adx341sas12ff.enjoy.cl/BibliotecaMedios/MotorReserva/imagenes/habitacion_canal_1324.jpg',
             'https://adx341sas12ff.enjoy.cl/BibliotecaMedios/MotorReserva/imagenes/habitacion_canal_1325.jpg',
             'https://adx341sas12ff.enjoy.cl/BibliotecaMedios/MotorReserva/imagenes/habitacion_canal_1326.jpg'
@@ -77,7 +116,13 @@ export class AuthDbService {
           amenities: ['TV 50”', 'A/C', 'Mini bar', 'Caja fuerte']
         },
         {
-          id: 3, nombre: 'Premium Vista Mar Completa', tipo: 'premium', precioNoche: 125000, disponible: true, imgs: [
+          id: 3, 
+          nombre: 'Premium Vista Mar Completa', 
+          tipo: 'premium', 
+          precioNoche: 125000, 
+          disponible: true, 
+          estado: 'disponible',
+          imgs: [
             'https://adx341sas12ff.enjoy.cl/BibliotecaMedios/MotorReserva/imagenes/habitacion_canal_1373.jpg',
             'https://adx341sas12ff.enjoy.cl/BibliotecaMedios/MotorReserva/imagenes/habitacion_canal_1375.jpg',
             'https://adx341sas12ff.enjoy.cl/BibliotecaMedios/MotorReserva/imagenes/habitacion_canal_1377.jpg'
@@ -90,9 +135,9 @@ export class AuthDbService {
       localStorage.setItem(this.LS_ROOMS, JSON.stringify(seed));
     }
     await this.seedAdmin();
+    await this.seedRecepcionista();
   }
 
- 
   private async seedAdmin() {
     const users: UserRow[] = JSON.parse(localStorage.getItem(this.LS_USERS) || '[]');
     const adminEmail = 'admin@pacificreef.cl';
@@ -108,16 +153,32 @@ export class AuthDbService {
     }
   }
 
+  private async seedRecepcionista() {
+    const users: UserRow[] = JSON.parse(localStorage.getItem(this.LS_USERS) || '[]');
+    const recepcionistaEmail = 'recepcion@pacificreef.cl';
+    if (!users.find(u => u.email === recepcionistaEmail)) {
+      users.push({
+        email: recepcionistaEmail,
+        name: 'Recepcionista Principal',
+        role: 'recepcionista',
+        password_hash: await this.hash('recepcion123'),
+        created_at: new Date().toISOString(),
+        telefono: '+56987654321',
+        turno: 'mañana'
+      });
+      localStorage.setItem(this.LS_USERS, JSON.stringify(users));
+    }
+  }
 
   async hash(text: string): Promise<string> {
     const enc = new TextEncoder().encode(text);
     const buf = await crypto.subtle.digest('SHA-256', enc);
     return [...new Uint8Array(buf)].map(b => b.toString(16).padStart(2, '0')).join('');
   }
+
   private isStrongPassword(p: string): boolean {
     return /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/.test((p || '').trim());
   }
-
 
   async register(email: string, password: string, _unused?: any): Promise<void> {
     email = email.trim().toLowerCase();
@@ -157,6 +218,19 @@ export class AuthDbService {
     return !!list.find(u => u.email === target && u.role === 'admin');
   }
 
+  isRecepcionista(email?: string | null): boolean {
+    const target = (email ?? this.getSessionEmail() ?? '').toLowerCase();
+    const list: UserRow[] = JSON.parse(localStorage.getItem(this.LS_USERS) || '[]');
+    return !!list.find(u => u.email === target && u.role === 'recepcionista');
+  }
+
+  isAdminOrRecepcionista(email?: string | null): boolean {
+    const target = (email ?? this.getSessionEmail() ?? '').toLowerCase();
+    const list: UserRow[] = JSON.parse(localStorage.getItem(this.LS_USERS) || '[]');
+    const user = list.find(u => u.email === target);
+    return !!user && (user.role === 'admin' || user.role === 'recepcionista');
+  }
+
   async changePassword(email: string, currentPass: string, newPass: string): Promise<void> {
     email = email.trim().toLowerCase();
     if (!this.isStrongPassword(newPass)) {
@@ -185,13 +259,20 @@ export class AuthDbService {
     return list.sort((a, b) => a.email.localeCompare(b.email));
   }
 
-  async updateUser(email: string, data: { name?: string; password?: string; role?: 'admin' | 'user' }): Promise<void> {
+  listRecepcionistas(): UserRow[] {
+    const list: UserRow[] = JSON.parse(localStorage.getItem(this.LS_USERS) || '[]');
+    return list.filter(u => u.role === 'recepcionista');
+  }
+
+  async updateUser(email: string, data: { name?: string; password?: string; role?: 'admin' | 'user' | 'recepcionista'; telefono?: string; turno?: string }): Promise<void> {
     const list: UserRow[] = JSON.parse(localStorage.getItem(this.LS_USERS) || '[]');
     const i = list.findIndex(u => u.email === email.toLowerCase());
     if (i < 0) throw new Error('Usuario no encontrado');
 
     if (data.name !== undefined) list[i].name = data.name;
     if (data.role) list[i].role = data.role;
+    if (data.telefono) list[i].telefono = data.telefono;
+    if (data.turno) list[i].turno = data.turno;
     if (data.password) {
       if (!this.isStrongPassword(data.password)) {
         throw new Error('La contraseña debe tener 8+ caracteres, con mayúscula, minúscula y número.');
@@ -209,10 +290,29 @@ export class AuthDbService {
     localStorage.setItem(this.LS_RESERVAS, JSON.stringify(all.filter(r => r.email !== key)));
   }
 
-  /*RESERVAS */
+  /* RESERVAS */
   listReservations(): Reserva[] {
     const all: Reserva[] = JSON.parse(localStorage.getItem(this.LS_RESERVAS) || '[]');
-    return all.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    
+    // Migrar reservas antiguas al nuevo formato
+    const migradas = all.map(reserva => ({
+      ...reserva,
+      estadoPago: reserva.estadoPago || 'pagado',
+      porcentajePagado: reserva.porcentajePagado || 100,
+      qrUsado: reserva.qrUsado || false,
+      datosHuesped: reserva.datosHuesped || {
+        nombreCompleto: 'Cliente ' + reserva.id,
+        telefono: '+56912345678',
+        email: reserva.email
+      }
+    }));
+
+    // Si hay cambios, guardar
+    if (JSON.stringify(all) !== JSON.stringify(migradas)) {
+      localStorage.setItem(this.LS_RESERVAS, JSON.stringify(migradas));
+    }
+
+    return migradas.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
   }
 
   listReservationsByEmail(email: string): Reserva[] {
@@ -220,13 +320,36 @@ export class AuthDbService {
     return this.listReservations().filter(r => r.email === key);
   }
 
-  addReservation(data: Omit<Reserva, 'id' | 'createdAt' | 'email' | 'qrImage' | 'qrPayload'> & { email: string }): Reserva {
+  listReservationsHoy(): Reserva[] {
+    const hoy = new Date().toISOString().split('T')[0];
+    return this.listReservations().filter(r => 
+      r.llegada.split('T')[0] === hoy || 
+      r.salida.split('T')[0] === hoy
+    );
+  }
+
+  listReservacionesCheckinHoy(): Reserva[] {
+    const hoy = new Date().toISOString().split('T')[0];
+    return this.listReservations().filter(r => 
+      r.llegada.split('T')[0] === hoy && 
+      !r.qrUsado
+    );
+  }
+
+  addReservation(data: Omit<Reserva, 'id' | 'createdAt' | 'email' | 'qrImage' | 'qrPayload' | 'estadoPago' | 'porcentajePagado' | 'qrUsado' | 'datosHuesped'> & { 
+    email: string;
+    datosHuesped?: {
+      nombreCompleto: string;
+      telefono: string;
+      email: string;
+      documento?: string;
+    };
+  }): Reserva {
     const all = this.listReservations();
 
     const email = data.email.trim().toLowerCase();
     const llegada = data.llegada;
     const salida  = data.salida;
-
 
     const noches = Math.round((+new Date(salida) - +new Date(llegada)) / 86400000);
     if (noches <= 0) throw new Error('Rango de fechas inválido.');
@@ -243,7 +366,6 @@ export class AuthDbService {
     );
     if (isExactDuplicate) throw new Error('Esta reserva ya existe para tu cuenta.');
 
-
     const id = (all.reduce((mx, r) => Math.max(mx, r.id), 0) || 0) + 1;
     const createdAt = new Date().toISOString();
 
@@ -258,7 +380,15 @@ export class AuthDbService {
       salida,
       noches,
       precioNoche: data.precioNoche,
-      total: data.total
+      total: data.total,
+      estadoPago: 'pagado',
+      porcentajePagado: 100,
+      qrUsado: false,
+      datosHuesped: data.datosHuesped || {
+        nombreCompleto: 'Cliente ' + id,
+        telefono: '+56912345678',
+        email: email
+      }
     };
 
     all.unshift(reserva);
@@ -286,6 +416,78 @@ export class AuthDbService {
     localStorage.setItem(this.LS_RESERVAS, JSON.stringify(all));
   }
 
+  // Métodos para recepcionista - Gestión de check-in/out
+  registrarCheckin(reservaId: number, recepcionistaEmail: string, observaciones?: string): void {
+    const all: Reserva[] = JSON.parse(localStorage.getItem(this.LS_RESERVAS) || '[]');
+    const i = all.findIndex(r => r.id === reservaId);
+    if (i === -1) throw new Error('Reserva no encontrada');
+
+    if (all[i].qrUsado) {
+      throw new Error('Esta reserva ya fue registrada (QR ya usado)');
+    }
+
+    all[i].qrUsado = true;
+    all[i].fechaCheckin = new Date().toISOString();
+    all[i].recepcionistaCheckin = recepcionistaEmail;
+    if (observaciones) all[i].observaciones = observaciones;
+
+    // Actualizar estado de la habitación
+    this.actualizarEstadoHabitacion(all[i].habitacionId, 'ocupada');
+
+    localStorage.setItem(this.LS_RESERVAS, JSON.stringify(all));
+    
+    // Registrar en logs
+    this.logRecepcionistaAction(recepcionistaEmail, `Check-in reserva #${reservaId}`, reservaId);
+  }
+
+  registrarCheckout(reservaId: number, recepcionistaEmail: string): void {
+    const all: Reserva[] = JSON.parse(localStorage.getItem(this.LS_RESERVAS) || '[]');
+    const i = all.findIndex(r => r.id === reservaId);
+    if (i === -1) throw new Error('Reserva no encontrada');
+
+    all[i].fechaCheckout = new Date().toISOString();
+    all[i].recepcionistaCheckout = recepcionistaEmail;
+
+    // Liberar habitación
+    this.actualizarEstadoHabitacion(all[i].habitacionId, 'limpieza');
+
+    localStorage.setItem(this.LS_RESERVAS, JSON.stringify(all));
+    
+    // Registrar en logs
+    this.logRecepcionistaAction(recepcionistaEmail, `Check-out reserva #${reservaId}`, reservaId);
+  }
+
+  registrarPago(reservaId: number, monto: number, metodo: string, recepcionistaEmail: string): void {
+    const all: Reserva[] = JSON.parse(localStorage.getItem(this.LS_RESERVAS) || '[]');
+    const i = all.findIndex(r => r.id === reservaId);
+    if (i === -1) throw new Error('Reserva no encontrada');
+
+    const reserva = all[i];
+    const porcentajePagado = Math.min(100, Math.round((monto / reserva.total) * 100));
+    
+    reserva.porcentajePagado = porcentajePagado;
+    reserva.estadoPago = porcentajePagado === 100 ? 'pagado' : 
+                        porcentajePagado > 0 ? 'parcial' : 'pendiente';
+
+    localStorage.setItem(this.LS_RESERVAS, JSON.stringify(all));
+    
+    // Registrar en logs
+    this.logRecepcionistaAction(
+      recepcionistaEmail, 
+      `Pago registrado: ${monto} (${metodo}) para reserva #${reservaId}`,
+      reservaId,
+      { monto, metodo, porcentajePagado }
+    );
+  }
+
+  generarNuevoQR(reservaId: number): { qrImage: string; qrPayload: string } {
+    // En una implementación real, aquí regenerarías el QR
+    // Por ahora retornamos valores dummy
+    return {
+      qrImage: 'data:image/png;base64,nuevo_qr_generado',
+      qrPayload: `Nuevo QR para reserva #${reservaId} - ${new Date().toISOString()}`
+    };
+  }
 
   isRangeOverlap(aStart: string, aEnd: string, bStart: string, bEnd: string) {
     return !(aEnd <= bStart || bEnd <= aStart);
@@ -324,7 +526,44 @@ export class AuthDbService {
   /* HABITACIONES */
   listRooms(): Habitacion[] {
     const all: Habitacion[] = JSON.parse(localStorage.getItem(this.LS_ROOMS) || '[]');
-    return all.sort((a, b) => a.id - b.id);
+    
+    // Migrar habitaciones antiguas al nuevo formato
+    const migradas = all.map(hab => ({
+      ...hab,
+      estado: hab.estado || 'disponible'
+    }));
+
+    // Si hay cambios, guardar
+    if (JSON.stringify(all) !== JSON.stringify(migradas)) {
+      localStorage.setItem(this.LS_ROOMS, JSON.stringify(migradas));
+    }
+
+    return migradas.sort((a, b) => a.id - b.id);
+  }
+
+  actualizarEstadoHabitacion(habitacionId: number, estado: 'disponible' | 'ocupada' | 'limpieza' | 'mantenimiento'): void {
+    const list = this.listRooms();
+    const i = list.findIndex(r => r.id === habitacionId);
+    if (i === -1) throw new Error('Habitación no encontrada');
+
+    list[i].estado = estado;
+    list[i].disponible = estado === 'disponible';
+    
+    localStorage.setItem(this.LS_ROOMS, JSON.stringify(list));
+  }
+
+  getHabitacionConReserva(habitacionId: number): { habitacion: Habitacion, reserva: Reserva | null } {
+    const habitacion = this.listRooms().find(h => h.id === habitacionId);
+    if (!habitacion) throw new Error('Habitación no encontrada');
+
+    const hoy = new Date().toISOString().split('T')[0];
+    const reserva = this.listReservations().find(r => 
+      r.habitacionId === habitacionId && 
+      r.llegada.split('T')[0] === hoy &&
+      !r.qrUsado
+    );
+
+    return { habitacion, reserva: reserva || null };
   }
 
   upsertRoom(room: Habitacion): Habitacion {
@@ -345,7 +584,37 @@ export class AuthDbService {
     localStorage.setItem(this.LS_ROOMS, JSON.stringify(list));
   }
 
-  /*REPORTES */
+  /* LOGS DE RECEPCIONISTA */
+  logRecepcionistaAction(email: string, accion: string, reservaId?: number, detalles?: any): void {
+    const logs: RecepcionistaLog[] = JSON.parse(localStorage.getItem(this.LS_LOGS) || '[]');
+    logs.push({
+      email,
+      accion,
+      timestamp: new Date().toISOString(),
+      sessionId: this.getSessionEmail(),
+      reservaId,
+      detalles
+    });
+    localStorage.setItem(this.LS_LOGS, JSON.stringify(logs));
+  }
+
+  getRecepcionistaLogs(): RecepcionistaLog[] {
+    return JSON.parse(localStorage.getItem(this.LS_LOGS) || '[]');
+  }
+
+  getLogsPorRecepcionista(email: string): RecepcionistaLog[] {
+    const logs = this.getRecepcionistaLogs();
+    return logs.filter(log => log.email === email)
+              .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+  }
+
+  getLogsPorReserva(reservaId: number): RecepcionistaLog[] {
+    const logs = this.getRecepcionistaLogs();
+    return logs.filter(log => log.reservaId === reservaId)
+              .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+  }
+
+  /* REPORTES PARA RECEPCIONISTA */
   reportTotalsByMonth(): { mes: string; total: number }[] {
     const map = new Map<string, number>();
     for (const r of this.listReservations()) {
@@ -365,5 +634,63 @@ export class AuthDbService {
       map.set(r.habitacionId, cur);
     }
     return [...map.values()].sort((a, b) => b.veces - a.veces).slice(0, limit);
+  }
+
+  // Nuevos reportes para recepcionista
+  reportCheckinsHoy(): { total: number; realizados: number; pendientes: number } {
+    const reservasHoy = this.listReservacionesCheckinHoy();
+    const realizados = reservasHoy.filter(r => r.qrUsado).length;
+    
+    return {
+      total: reservasHoy.length,
+      realizados: realizados,
+      pendientes: reservasHoy.length - realizados
+    };
+  }
+
+  reportEstadoHabitaciones(): { estado: string; cantidad: number }[] {
+    const habitaciones = this.listRooms();
+    const map = new Map<string, number>();
+    
+    habitaciones.forEach(h => {
+      const estado = h.estado || 'disponible';
+      map.set(estado, (map.get(estado) || 0) + 1);
+    });
+    
+    return [...map.entries()].map(([estado, cantidad]) => ({ estado, cantidad }));
+  }
+
+  reportPagosPendientes(): Reserva[] {
+    const hoy = new Date().toISOString().split('T')[0];
+    return this.listReservations().filter(r => 
+      r.llegada.split('T')[0] === hoy && 
+      r.estadoPago !== 'pagado'
+    );
+  }
+
+  // Método para detectar posibles overbookings
+  detectarOverbookings(): { habitacionId: number; nombre: string; reservas: Reserva[] }[] {
+    const hoy = new Date().toISOString().split('T')[0];
+    const reservasHoy = this.listReservations().filter(r => 
+      r.llegada.split('T')[0] === hoy && 
+      !r.qrUsado
+    );
+    
+    const map = new Map<number, Reserva[]>();
+    
+    reservasHoy.forEach(r => {
+      if (!map.has(r.habitacionId)) {
+        map.set(r.habitacionId, []);
+      }
+      map.get(r.habitacionId)!.push(r);
+    });
+    
+    return [...map.entries()]
+      .filter(([_, reservas]) => reservas.length > 1)
+      .map(([habitacionId, reservas]) => ({
+        habitacionId,
+        nombre: reservas[0].nombreHabitacion,
+        reservas
+      }));
   }
 }

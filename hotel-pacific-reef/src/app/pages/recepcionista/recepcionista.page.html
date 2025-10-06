@@ -1,0 +1,80 @@
+<ion-header class="site-header">
+  <ion-toolbar color="light">
+    <div class="container navbar">
+      <div class="brand">
+        <ion-icon name="desktop-outline"></ion-icon>
+        <span>Recepción • Pacific Reef</span>
+      </div>
+      <nav class="menu">
+        <a routerLink="/recepcionista" routerLinkActive="active">Dashboard</a>
+        <a routerLink="/recepcionista/reservas">Reservas Hoy</a>
+        <a routerLink="/recepcionista/checkin">Check-in</a>
+        <a routerLink="/recepcionista/habitaciones">Habitaciones</a>
+        <a routerLink="/recepcionista/pagos">Pagos</a>
+        <a href="#" class="logout" (click)="logout($event)">Cerrar sesión</a>
+      </nav>
+    </div>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="site-content ion-padding">
+  <!-- Tarjetas de resumen -->
+  <div class="summary-cards">
+    <ion-card class="summary-card">
+      <ion-card-header>
+        <ion-card-title>{{ reservasHoy.length }}</ion-card-title>
+        <ion-card-subtitle>Check-ins Hoy</ion-card-subtitle>
+      </ion-card-header>
+    </ion-card>
+
+    <ion-card class="summary-card">
+      <ion-card-header>
+        <ion-card-title>{{ habitacionesOcupadas }}/{{ totalHabitaciones }}</ion-card-title>
+        <ion-card-subtitle>Habitaciones Ocupadas</ion-card-subtitle>
+      </ion-card-header>
+    </ion-card>
+
+    <ion-card class="summary-card">
+      <ion-card-header>
+        <ion-card-title>{{ currency(ingresosHoy) }}</ion-card-title>
+        <ion-card-subtitle>Ingresos Hoy</ion-card-subtitle>
+      </ion-card-header>
+    </ion-card>
+  </div>
+
+  <!-- Reservas críticas -->
+  <ion-card>
+    <ion-card-header>
+      <ion-card-title>Alertas y Reservas Críticas</ion-card-title>
+    </ion-card-header>
+    <ion-card-content>
+      <ion-list>
+        <ion-item *ngFor="let alerta of alertas" [color]="alerta.critico ? 'danger' : 'warning'">
+          <ion-label>
+            <h3>{{ alerta.titulo }}</h3>
+            <p>{{ alerta.mensaje }}</p>
+          </ion-label>
+        </ion-item>
+      </ion-list>
+    </ion-card-content>
+  </ion-card>
+
+  <!-- Próximos check-ins -->
+  <ion-card>
+    <ion-card-header>
+      <ion-card-title>Próximos Check-ins (Hoy)</ion-card-title>
+    </ion-card-header>
+    <ion-card-content>
+      <ion-list>
+        <ion-item *ngFor="let reserva of proximosCheckins">
+          <ion-label>
+            <h3>#{{ reserva.id }} • {{ reserva.datosHuesped?.nombreCompleto }}</h3>
+            <p>{{ reserva.nombreHabitacion }} • {{ reserva.llegada | date:'HH:mm' }}</p>
+            <p [class]="reserva.estadoPago">{{ reserva.estadoPago | titlecase }} ({{ reserva.porcentajePagado }}%)</p>
+          </ion-label>
+          <ion-button fill="outline" (click)="procesarCheckin(reserva)">Check-in</ion-button>
+        </ion-item>
+      </ion-list>
+    </ion-card-content>
+  </ion-card>
+</ion-content>

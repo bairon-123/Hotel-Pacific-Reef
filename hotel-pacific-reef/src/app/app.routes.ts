@@ -1,5 +1,6 @@
 import { Routes } from '@angular/router';
 import { adminGuard } from './pages/admin.guard';
+import { recepcionistaGuard } from './pages/recepcionista.guard';
 import { authGuard }  from './auth.guard';
 
 export const routes: Routes = [
@@ -21,4 +22,27 @@ export const routes: Routes = [
   { path: 'admin/reportes',       loadComponent: () => import('./pages/admin-reportes/admin-reportes.page').then(m => m.AdminReportesPage), canActivate: [adminGuard] },
 
   { path: '**', redirectTo: 'home' },
+  {
+    path: 'recepcionista',
+    loadComponent: () => import('./pages/recepcionista/recepcionista.page').then(m => m.RecepcionistaPage),
+    canActivate: [recepcionistaGuard]
+  },
+  {
+    path: 'recepcionista/checkin',
+    loadComponent: () => import('./pages/recepcionista-checkin/recepcionista-checkin.page').then(m => m.RecepcionistaCheckinPage),
+    canActivate: [recepcionistaGuard]
+  },
+  {
+    path: 'recepcionista/habitaciones',
+    loadComponent: () => import('./pages/recepcionista-habitaciones/recepcionista-habitaciones.page').then(m => m.RecepcionistaHabitacionesPage),
+    canActivate: [recepcionistaGuard]
+  },
+  {
+    path: 'recepcionista/pagos',
+    loadComponent: () => import('./pages/recepcionista-pagos/recepcionista-pagos.page').then(m => m.RecepcionistaPagosPage),
+    canActivate: [recepcionistaGuard]
+  }
+
+
+
 ];

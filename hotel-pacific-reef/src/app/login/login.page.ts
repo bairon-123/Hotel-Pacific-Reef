@@ -4,7 +4,6 @@ import { FormsModule } from '@angular/forms';
 import { IonicModule, ToastController, NavController, IonInput } from '@ionic/angular';
 import { AuthDbService } from '../services/auth-db.service';
 
-
 @Component({
   selector: 'app-login',
   standalone: true,
@@ -44,8 +43,8 @@ export class LoginPage implements OnInit {
     // si ya está logueado, redirige según rol
     const logged = this.auth.getSessionEmail();
     if (logged) {
-      const to = this.auth.isAdmin() ? '/admin' : '/home';
-      this.nav.navigateRoot(to);
+      // Usar la nueva lógica de redirección basada en rol
+      this.redirectByRole();
       return;
     }
     // primer captcha
@@ -126,28 +125,26 @@ export class LoginPage implements OnInit {
   }
 }
 
-private validateCaptcha(): boolean {
-  const raw = (this.captchaInput || '').trim();
+  private validateCaptcha(): boolean {
+    const raw = (this.captchaInput || '').trim();
 
-  // vacío -> error y NO regeneramos la imagen
-  if (!raw) {
-    this.captchaError = 'Debes ingresar el texto del CAPTCHA.';
-    return false;
+    // vacío -> error y NO regeneramos la imagen
+    if (!raw) {
+      this.captchaError = 'Debes ingresar el texto del CAPTCHA.';
+      return false;
+    }
+
+    // normalizamos para comparar (sin espacios y minúsculas)
+    const norm = (s: string) => s.replace(/\s+/g, '').toLowerCase();
+    if (norm(raw) !== norm(this.captchaText)) {
+      this.captchaError = 'Captcha incorrecto. Inténtalo de nuevo.';
+      this.regenCaptcha(); // solo regeneramos si está mal
+      return false;
+    }
+
+    this.captchaError = '';
+    return true;
   }
-
-  // normalizamos para comparar (sin espacios y minúsculas)
-  const norm = (s: string) => s.replace(/\s+/g, '').toLowerCase();
-  if (norm(raw) !== norm(this.captchaText)) {
-    this.captchaError = 'Captcha incorrecto. Inténtalo de nuevo.';
-    this.regenCaptcha(); // solo regeneramos si está mal
-    return false;
-  }
-
-  this.captchaError = '';
-  return true;
-}
-
-
 
   /* =================== LOGIN =================== */
   async onLogin() {
@@ -163,12 +160,22 @@ private validateCaptcha(): boolean {
       if (!ok) return this.msg('Credenciales inválidas.');
       this.msg('¡Bienvenido!', 'success');
 
-      const to = this.auth.isAdmin() ? '/admin' : '/home';
-      this.nav.navigateRoot(to);
+      // Redirigir según el rol
+      this.redirectByRole();
     } catch (e: any) {
       this.msg(e?.message || 'Error al iniciar sesión.');
     } finally {
       this.isLoading = false;
+    }
+  }
+
+  private redirectByRole() {
+    if (this.auth.isAdmin()) {
+      this.nav.navigateRoot('/admin');
+    } else if (this.auth.isRecepcionista()) {
+      this.nav.navigateRoot('/recepcionista');
+    } else {
+      this.nav.navigateRoot('/home');
     }
   }
 
@@ -203,22 +210,21 @@ private validateCaptcha(): boolean {
   }
 
   async forgot(ev: Event) {
-  ev.preventDefault();
+    ev?.preventDefault();
 
-  if (!this.email.trim()) {
-    return this.msg('Por favor, ingresa tu correo electrónico antes de continuar.', 'medium');
+    if (!this.email.trim()) {
+      return this.msg('Por favor, ingresa tu correo electrónico antes de continuar.', 'medium');
+    }
+
+    // Simula el proceso de recuperación (puedes reemplazar con una llamada real a tu servicio)
+    this.isLoading = true;
+    setTimeout(async () => {
+      this.isLoading = false;
+      await this.msg('Se ha enviado un correo a tu dirección para recuperar la contraseña.', 'success');
+    }, 1500);
   }
 
-  // Simula el proceso de recuperación (puedes reemplazar con una llamada real a tu servicio)
-  this.isLoading = true;
-  setTimeout(async () => {
-    this.isLoading = false;
-    await this.msg('Se ha enviado un correo a tu dirección para recuperar la contraseña.', 'success');
-  }, 1500);
-}
-
   // simple email validation 
-
   private validEmail(v: string): boolean {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim());
   }
