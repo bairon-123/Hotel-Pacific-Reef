@@ -54,7 +54,6 @@ export class RecepcionistaPage implements OnInit {
     const reservas = this.authDb.listReservations();
     const hoy = new Date().toISOString().split('T')[0];
 
-    // Alertas de pagos pendientes
     reservas
       .filter(r => r.estadoPago === 'pendiente' && r.llegada.split('T')[0] === hoy)
       .forEach(r => {
@@ -65,7 +64,7 @@ export class RecepcionistaPage implements OnInit {
         });
       });
 
-    // Alertas de overbooking
+
     const habitaciones = this.authDb.listRooms();
     habitaciones.forEach(h => {
       const reservasHabitacion = reservas.filter(r => 

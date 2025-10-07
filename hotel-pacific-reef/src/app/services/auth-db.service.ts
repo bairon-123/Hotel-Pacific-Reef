@@ -7,9 +7,9 @@ export type UserRow = {
   password_hash: string;
   created_at: string;      
   name?: string;
-  role?: 'admin' | 'user' | 'recepcionista'; // ← Nuevo rol
+  role?: 'admin' | 'user' | 'recepcionista';
   telefono?: string;
-  turno?: string; // mañana, tarde, noche
+  turno?: string; 
 };
 
 export type Reserva = {
@@ -294,7 +294,7 @@ export class AuthDbService {
   listReservations(): Reserva[] {
     const all: Reserva[] = JSON.parse(localStorage.getItem(this.LS_RESERVAS) || '[]');
     
-    // Migrar reservas antiguas al nuevo formato
+
     const migradas = all.map(reserva => ({
       ...reserva,
       estadoPago: reserva.estadoPago || 'pagado',
@@ -307,7 +307,6 @@ export class AuthDbService {
       }
     }));
 
-    // Si hay cambios, guardar
     if (JSON.stringify(all) !== JSON.stringify(migradas)) {
       localStorage.setItem(this.LS_RESERVAS, JSON.stringify(migradas));
     }
@@ -431,12 +430,10 @@ export class AuthDbService {
     all[i].recepcionistaCheckin = recepcionistaEmail;
     if (observaciones) all[i].observaciones = observaciones;
 
-    // Actualizar estado de la habitación
     this.actualizarEstadoHabitacion(all[i].habitacionId, 'ocupada');
 
     localStorage.setItem(this.LS_RESERVAS, JSON.stringify(all));
     
-    // Registrar en logs
     this.logRecepcionistaAction(recepcionistaEmail, `Check-in reserva #${reservaId}`, reservaId);
   }
 
@@ -448,12 +445,11 @@ export class AuthDbService {
     all[i].fechaCheckout = new Date().toISOString();
     all[i].recepcionistaCheckout = recepcionistaEmail;
 
-    // Liberar habitación
+
     this.actualizarEstadoHabitacion(all[i].habitacionId, 'limpieza');
 
     localStorage.setItem(this.LS_RESERVAS, JSON.stringify(all));
     
-    // Registrar en logs
     this.logRecepcionistaAction(recepcionistaEmail, `Check-out reserva #${reservaId}`, reservaId);
   }
 
@@ -471,7 +467,6 @@ export class AuthDbService {
 
     localStorage.setItem(this.LS_RESERVAS, JSON.stringify(all));
     
-    // Registrar en logs
     this.logRecepcionistaAction(
       recepcionistaEmail, 
       `Pago registrado: ${monto} (${metodo}) para reserva #${reservaId}`,
@@ -481,8 +476,6 @@ export class AuthDbService {
   }
 
   generarNuevoQR(reservaId: number): { qrImage: string; qrPayload: string } {
-    // En una implementación real, aquí regenerarías el QR
-    // Por ahora retornamos valores dummy
     return {
       qrImage: 'data:image/png;base64,nuevo_qr_generado',
       qrPayload: `Nuevo QR para reserva #${reservaId} - ${new Date().toISOString()}`
@@ -523,17 +516,15 @@ export class AuthDbService {
     localStorage.setItem(this.LS_RESERVAS, JSON.stringify(all));
   }
 
-  /* HABITACIONES */
   listRooms(): Habitacion[] {
     const all: Habitacion[] = JSON.parse(localStorage.getItem(this.LS_ROOMS) || '[]');
     
-    // Migrar habitaciones antiguas al nuevo formato
     const migradas = all.map(hab => ({
       ...hab,
       estado: hab.estado || 'disponible'
     }));
 
-    // Si hay cambios, guardar
+
     if (JSON.stringify(all) !== JSON.stringify(migradas)) {
       localStorage.setItem(this.LS_ROOMS, JSON.stringify(migradas));
     }
@@ -584,7 +575,6 @@ export class AuthDbService {
     localStorage.setItem(this.LS_ROOMS, JSON.stringify(list));
   }
 
-  /* LOGS DE RECEPCIONISTA */
   logRecepcionistaAction(email: string, accion: string, reservaId?: number, detalles?: any): void {
     const logs: RecepcionistaLog[] = JSON.parse(localStorage.getItem(this.LS_LOGS) || '[]');
     logs.push({
@@ -614,11 +604,10 @@ export class AuthDbService {
               .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
   }
 
-  /* REPORTES PARA RECEPCIONISTA */
   reportTotalsByMonth(): { mes: string; total: number }[] {
     const map = new Map<string, number>();
     for (const r of this.listReservations()) {
-      const mes = (r.llegada || r.createdAt).slice(0, 7); // YYYY-MM
+      const mes = (r.llegada || r.createdAt).slice(0, 7);
       map.set(mes, (map.get(mes) || 0) + r.total);
     }
     return [...map.entries()]
@@ -636,7 +625,6 @@ export class AuthDbService {
     return [...map.values()].sort((a, b) => b.veces - a.veces).slice(0, limit);
   }
 
-  // Nuevos reportes para recepcionista
   reportCheckinsHoy(): { total: number; realizados: number; pendientes: number } {
     const reservasHoy = this.listReservacionesCheckinHoy();
     const realizados = reservasHoy.filter(r => r.qrUsado).length;

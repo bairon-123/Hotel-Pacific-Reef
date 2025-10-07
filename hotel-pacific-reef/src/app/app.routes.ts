@@ -13,7 +13,7 @@ export const routes: Routes = [
   { path: 'portal-pago', loadComponent: () => import('./portal-pago/portal-pago.page').then(m => m.PortalPagoPage), canActivate: [authGuard] },
   { path: 'perfil',      loadComponent: () => import('./perfil/perfil.page').then(m => m.PerfilPage), canActivate: [authGuard] },
 
-  // Recepcionista (ANTES del wildcard)
+  // Recepcionista 
   { path: 'recepcionista', loadComponent: () => import('./pages/recepcionista/recepcionista.page').then(m => m.RecepcionistaPage), canActivate: [recepcionistaGuard] },
   { path: 'recepcionista/checkin', loadComponent: () => import('./pages/recepcionista-checkin/recepcionista-checkin.page').then(m => m.RecepcionistaCheckinPage), canActivate: [recepcionistaGuard] },
   { path: 'recepcionista/habitaciones', loadComponent: () => import('./pages/recepcionista-habitaciones/recepcionista-habitaciones.page').then(m => m.RecepcionistaHabitacionesPage), canActivate: [recepcionistaGuard] },
@@ -26,7 +26,5 @@ export const routes: Routes = [
   { path: 'admin/habitaciones',   loadComponent: () => import('./pages/admin-habitaciones/admin-habitaciones.page').then(m => m.AdminHabitacionesPage), canActivate: [adminGuard] },
   { path: 'admin/reportes',       loadComponent: () => import('./pages/admin-reportes/admin-reportes.page').then(m => m.AdminReportesPage), canActivate: [adminGuard] },
   
-
-  // WILDCARD al final
   { path: '**', redirectTo: 'home' },
 ];
