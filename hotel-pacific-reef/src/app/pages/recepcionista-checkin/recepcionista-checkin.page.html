@@ -1,11 +1,22 @@
-<ion-header>
+<ion-header class="site-header">
   <ion-toolbar color="light">
-    <ion-buttons slot="start">
-      <ion-back-button></ion-back-button>
-    </ion-buttons>
-    <ion-title>Check-in Recepción</ion-title>
+    <div class="container navbar">
+      <div class="brand">
+        <ion-icon name="desktop-outline"></ion-icon>
+        <span>Check-in Recepción</span>
+      </div>
+      <nav class="menu">
+        <a routerLink="/recepcionista" routerLinkActive="active">Dashboard</a>
+        <a routerLink="/recepcionista/reservas">Reservas Hoy</a>
+        <a routerLink="/recepcionista/checkin">Check-in</a>
+        <a routerLink="/recepcionista/habitaciones">Habitaciones</a>
+        <a routerLink="/recepcionista/pagos">Pagos</a>
+        <a href="#" class="logout" (click)="logout($event)">Cerrar sesión</a>
+      </nav>
+    </div>
   </ion-toolbar>
 </ion-header>
+
 
 <ion-content class="ion-padding">
   <!-- Lector QR -->

@@ -1,5 +1,7 @@
+
 import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { RouterLink } from '@angular/router';
 import { IonicModule, NavController, ToastController, AlertController } from '@ionic/angular';
 import { FormsModule } from '@angular/forms';
 import { AuthDbService, Reserva } from '../../services/auth-db.service';
@@ -7,7 +9,7 @@ import { AuthDbService, Reserva } from '../../services/auth-db.service';
 @Component({
   selector: 'app-recepcionista-checkin',
   standalone: true,
-  imports: [CommonModule, IonicModule, FormsModule],
+  imports: [CommonModule, IonicModule, FormsModule, RouterLink],
   templateUrl: './recepcionista-checkin.page.html'
 })
 export class RecepcionistaCheckinPage implements OnInit {
@@ -188,4 +190,11 @@ export class RecepcionistaCheckinPage implements OnInit {
   ngOnDestroy() {
     this.detenerEscaneo();
   }
+
+  logout(ev?: Event) {
+    ev?.preventDefault();
+    this.authDb.logout();
+    this.nav.navigateRoot('/login');
+  }
 }
+

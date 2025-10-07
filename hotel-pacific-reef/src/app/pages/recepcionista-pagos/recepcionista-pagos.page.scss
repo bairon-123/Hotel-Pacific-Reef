@@ -1,0 +1,101 @@
+/* ====== Layout base ====== */
+.container {
+  width: min(1140px, 92vw);
+  margin-inline: auto;
+}
+
+.site-header ion-toolbar {
+  --background: #ffffff;
+  --color: #111827;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.navbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 64px;
+}
+
+/* ====== Branding ====== */
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 700;
+}
+.brand ion-icon {
+  font-size: 20px;
+  color: var(--ion-color-primary);
+}
+
+/* ====== Menú superior ====== */
+.menu {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+.menu a {
+  color: #374151;
+  text-decoration: none;
+  padding: 8px 12px;
+  border-radius: 10px;
+  transition: background .2s ease, color .2s ease;
+}
+.menu a:hover,
+.menu a.active {
+  background: #f3f4f6;
+}
+
+/* Cerrar sesión destacado */
+.menu a.logout {
+  color: #dc2626;
+  font-weight: 600;
+  border: 1px solid transparent;
+}
+.menu a.logout:hover {
+  background: #fee2e2;
+  border-color: #fecaca;
+}
+.menu a.logout:focus {
+  outline: 2px solid #fecaca;
+}
+
+/* ====== Contenido ====== */
+.site-content {
+  --background: #f7fafc;
+  padding-top: 12px;
+}
+
+/* ====== Utilidades (si agregas listas o tarjetas) ====== */
+ion-card {
+  border-radius: 14px;
+  box-shadow: 0 10px 24px rgba(0,0,0,.06);
+}
+ion-card-title {
+  font-weight: 700;
+}
+ion-item[color="danger"] {
+  --background: #fff1f2;
+}
+ion-item[color="warning"] {
+  --background: #fffbeb;
+}
+
+/* ====== Responsive ====== */
+@media (max-width: 980px) {
+  .navbar {
+    gap: 10px;
+  }
+  .menu {
+    gap: 12px;
+  }
+}
+@media (max-width: 640px) {
+  .menu a {
+    padding: 6px 10px;
+  }
+  .brand span {
+    font-size: 14px;
+  }
+}
