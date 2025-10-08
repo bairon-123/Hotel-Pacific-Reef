@@ -70,6 +70,15 @@ export type RecepcionistaLog = {
 
 @Injectable({ providedIn: 'root' })
 export class AuthDbService {
+  getProximasReservasPorHabitacion(arg0: number): { habitacion: Habitacion; reservas: Reserva[]; }[] {
+    throw new Error('Method not implemented.');
+  }
+  listHabitacionesOcupadas(): Habitacion[] {
+    throw new Error('Method not implemented.');
+  }
+  validateQrPayload(text: string) {
+    throw new Error('Method not implemented.');
+  }
   private readonly LS_USERS    = 'users_db_v1';
   private readonly LS_SESSION  = 'session_email';
   private readonly LS_RESERVAS = 'reservas_hotel_v1';
@@ -681,4 +690,31 @@ export class AuthDbService {
         reservas
       }));
   }
+  // recepcionista ===
+
+
+private onlyDate(iso: string): string { return (iso || '').slice(0,10); }
+private addDaysISO(baseISO: string, days: number): string {
+  const d = new Date(baseISO + 'T00:00:00'); d.setDate(d.getDate()+days);
+  const y = d.getFullYear(), m = String(d.getMonth()+1).padStart(2,'0'), da = String(d.getDate()).padStart(2,'0');
+  return `${y}-${m}-${da}`;
 }
+
+
+listProximosCheckins(dias = 7): Reserva[] {
+  const hoy = new Date().toISOString().slice(0,10);
+  const limite = this.addDaysISO(hoy, dias);
+  return this.listReservations().filter(r =>
+    !r.qrUsado &&
+    this.onlyDate(r.llegada) >= hoy &&
+    this.onlyDate(r.llegada) <= limite
+  ).sort((a,b)=> a.llegada.localeCompare(b.llegada));
+}
+
+
+countReservasMesActual(): number {
+  const now = new Date();
+  const ym = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+  return this.listReservations().filter(r => (r.llegada || r.createdAt).startsWith(ym)).length;
+}}
+

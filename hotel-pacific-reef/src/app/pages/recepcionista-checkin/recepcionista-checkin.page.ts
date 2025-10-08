@@ -2,25 +2,21 @@ import { Component, OnInit, OnDestroy, ViewChild, ElementRef } from '@angular/co
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink, RouterLinkActive } from '@angular/router';
-
 import {
   IonHeader, IonToolbar, IonTitle, IonContent,
   IonButtons, IonButton, IonIcon, IonList, IonItem, IonLabel,
   IonInput, IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonBadge, IonText
 } from '@ionic/angular/standalone';
-
 import { NavController, ToastController, AlertController } from '@ionic/angular';
 import { AuthDbService, Reserva } from '../../services/auth-db.service';
+import jsQR from 'jsqr';
 
 @Component({
   selector: 'app-recepcionista-checkin',
   standalone: true,
   imports: [
-    CommonModule,
-    FormsModule,
-    RouterLink,
-    RouterLinkActive,
-    // Ionic standalone
+    CommonModule, FormsModule,
+    RouterLink, RouterLinkActive,
     IonHeader, IonToolbar, IonTitle, IonContent,
     IonButtons, IonButton, IonIcon, IonList, IonItem, IonLabel,
     IonInput, IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonBadge, IonText
@@ -29,90 +25,124 @@ import { AuthDbService, Reserva } from '../../services/auth-db.service';
   styleUrls: ['./recepcionista-checkin.page.scss']
 })
 export class RecepcionistaCheckinPage implements OnInit, OnDestroy {
-  @ViewChild('videoElement')  videoElement!: ElementRef<HTMLVideoElement>;
-  @ViewChild('canvasElement') canvasElement!: ElementRef<HTMLCanvasElement>;
+  @ViewChild('videoEl')  videoEl!: ElementRef<HTMLVideoElement>;
+  @ViewChild('canvasEl') canvasEl!: ElementRef<HTMLCanvasElement>;
 
-  // Scanner
   isScanning = false;
   stream: MediaStream | null = null;
 
-  // Búsqueda / selección
+  reservaSeleccionada: Reserva | null = null;
   busquedaManual = '';
   resultadosBusqueda: Reserva[] = [];
-  reservaSeleccionada: Reserva | null = null;
 
   constructor(
-    private authDb: AuthDbService,
+    private db: AuthDbService,
     private nav: NavController,
     private toast: ToastController,
     private alert: AlertController
   ) {}
 
   async ngOnInit() {
-    await this.authDb.init();
+    await this.db.init();
+    const st = history.state;
+    if (st?.reservaId) {
+      const r = this.db.listReservations().find(x => x.id === st.reservaId);
+      if (r) this.reservaSeleccionada = r;
+    }
   }
 
-  ngOnDestroy() {
-    this.detenerEscaneo();
-  }
+  ngOnDestroy() { this.stop(); }
 
-  /* ========== Escáner ========== */
-  async toggleScan() {
-    if (this.isScanning) return this.detenerEscaneo();
-    await this.iniciarEscaneo();
-  }
-
-  private async iniciarEscaneo() {
+  async start() {
+    if (this.isScanning) return;
     try {
       this.stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
-      const video = this.videoElement.nativeElement;
-      video.srcObject = this.stream;
-      await video.play();
+      this.videoEl.nativeElement.srcObject = this.stream;
+      await this.videoEl.nativeElement.play();
       this.isScanning = true;
-      this.loopEscaneo();
+      this.loopScan();
     } catch {
-      this.mostrarError('No se pudo acceder a la cámara.');
+      this.err('No se pudo acceder a la cámara.');
     }
   }
 
-  private detenerEscaneo() {
+  stop() {
     this.isScanning = false;
-    if (this.stream) {
-      this.stream.getTracks().forEach(t => t.stop());
-      this.stream = null;
+    this.stream?.getTracks().forEach(t => t.stop());
+    this.stream = null;
+  }
+
+  async aceptarCheckin() {
+    if (!this.reservaSeleccionada) return;
+    if (this.reservaSeleccionada.qrUsado) {
+      return this.err('Esta reserva ya fue registrada.');
+    }
+    const recep = this.db.getSessionEmail();
+    if (!recep) return this.err('No hay sesión activa.');
+    try {
+      this.db.registrarCheckin(this.reservaSeleccionada.id, recep);
+      await this.ok('Check-in registrado.');
+      this.reservaSeleccionada = null;
+    } catch (e:any) {
+      this.err(e?.message || 'Error al registrar check-in.');
     }
   }
 
-  // Aquí podrías integrar jsQR; por ahora solo dibujamos frames (overlay)
-  private loopEscaneo() {
-    const canvas = this.canvasElement.nativeElement;
+  // === QR ===
+  private loopScan() {
+    if (!this.isScanning) return;
+    const video = this.videoEl.nativeElement;
+    const canvas = this.canvasEl.nativeElement;
     const ctx = canvas.getContext('2d');
 
-    const step = () => {
-      if (!this.isScanning) return;
-      const video = this.videoElement.nativeElement;
-      if (video.readyState >= 2) {
-        canvas.width  = video.videoWidth;
-        canvas.height = video.videoHeight;
-        ctx?.drawImage(video, 0, 0, canvas.width, canvas.height);
+    if (video.readyState >= 2) {
+      canvas.width  = video.videoWidth;
+      canvas.height = video.videoHeight;
+      ctx?.drawImage(video, 0, 0, canvas.width, canvas.height);
+      const img = ctx?.getImageData(0, 0, canvas.width, canvas.height);
+      if (img) {
+        const code = jsQR(img.data, img.width, img.height, { inversionAttempts: 'dontInvert' });
+        if (code?.data) {
+          this.stop();
+          this.handleQr(code.data);
+          return;
+        }
       }
-      requestAnimationFrame(step);
-    };
-    step();
+    }
+    requestAnimationFrame(() => this.loopScan());
   }
 
-  /* ========== Búsqueda manual ========== */
+  private async handleQr(text: string) {
+    const all = this.db.listReservations();
+
+    let r = all.find(x => (x.qrPayload || '').trim() === text.trim());
+    if (!r) {
+      const m = text.match(/(\d{1,7})/);
+      if (m) {
+        const id = +m[1];
+        r = all.find(x => x.id === id);
+      }
+    }
+
+    if (!r) {
+      return this.err('QR no está en sistema o caducó.');
+    }
+
+    this.reservaSeleccionada = r;
+    await this.ok(`Reserva #${r.id} encontrada.`);
+  }
+
+
   buscarReservaManual() {
     const q = (this.busquedaManual || '').trim().toLowerCase();
     if (!q) { this.resultadosBusqueda = []; return; }
-
-    const todas = this.authDb.listReservations();
+    const todas = this.db.listReservations();
     this.resultadosBusqueda = todas.filter(r =>
-      r.id.toString().includes(q) ||
+      String(r.id).includes(q) ||
       (r.datosHuesped?.nombreCompleto || '').toLowerCase().includes(q) ||
-      (r.datosHuesped?.email || '').toLowerCase().includes(q) ||
+      (r.datosHuesped?.email || r.email).toLowerCase().includes(q) ||
       (r.nombreHabitacion || '').toLowerCase().includes(q)
-    ).slice(0, 10);
+    ).slice(0, 15);
   }
 
   seleccionarReserva(r: Reserva) {
@@ -121,60 +151,19 @@ export class RecepcionistaCheckinPage implements OnInit, OnDestroy {
     this.busquedaManual = '';
   }
 
-  /* ========== Acciones ========== */
-  async procesarCheckin() {
-    if (!this.reservaSeleccionada) return;
-
-    if ((this.reservaSeleccionada as any).qrUsado) {
-      const a = await this.alert.create({
-        header: 'QR ya utilizado',
-        message: 'Esta reserva ya fue registrada anteriormente.',
-        buttons: ['OK']
-      });
-      await a.present();
-      return;
-    }
-
-    try {
-      const sessionEmail = this.authDb.getSessionEmail();
-      if (!sessionEmail) return this.mostrarError('No hay sesión activa.');
-
-      await (this.authDb as any).registrarCheckin(this.reservaSeleccionada.id, sessionEmail);
-      this.mostrarExito('Check-in registrado exitosamente.');
-      this.reservaSeleccionada = null;
-    } catch (e: any) {
-      this.mostrarError(e?.message || 'Error al registrar check-in.');
-    }
-  }
-
   irAPagos() {
-    if (!this.reservaSeleccionada) return;
-    this.nav.navigateForward('/recepcionista/pagos', {
-      state: { reservaId: this.reservaSeleccionada.id }
-    });
-  }
-
-  async generarNuevoQR() {
-    if (!this.reservaSeleccionada) return;
-    try {
-      const nuevoQR = (this.authDb as any).generarNuevoQR(this.reservaSeleccionada.id);
-      this.authDb.attachQrToReservation(this.reservaSeleccionada.id, nuevoQR.qrImage, nuevoQR.qrPayload);
-      this.mostrarExito('Nuevo QR generado exitosamente.');
-    } catch (e: any) {
-      this.mostrarError(e?.message || 'Error al generar nuevo QR.');
+    if (this.reservaSeleccionada) {
+      this.nav.navigateForward('/recepcionista/pagos', { state: { reservaId: this.reservaSeleccionada.id } });
     }
   }
 
-  /* ========== UI helpers ========== */
-  currency(v: number | null | undefined) {
-    return (v ?? 0).toLocaleString('es-CL', { style: 'currency', currency: 'CLP', maximumFractionDigits: 0 });
-  }
-  async mostrarExito(msg: string) { (await this.toast.create({ message: msg, duration: 2000, color: 'success' })).present(); }
-  async mostrarError(msg: string) { (await this.toast.create({ message: msg, duration: 2800, color: 'danger'  })).present(); }
+
+  async ok(msg: string) { (await this.toast.create({ message: msg, duration: 1800, color: 'success' })).present(); }
+  async err(msg: string) { (await this.toast.create({ message: msg, duration: 2200, color: 'danger'  })).present(); }
 
   logout(ev?: Event) {
     ev?.preventDefault();
-    this.authDb.logout();
+    this.db.logout();
     this.nav.navigateRoot('/login');
   }
 }

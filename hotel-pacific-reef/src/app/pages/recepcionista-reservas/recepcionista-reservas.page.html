@@ -3,11 +3,11 @@
     <div class="container navbar">
       <div class="brand">
         <ion-icon name="desktop-outline"></ion-icon>
-        <span>Recepción reservas</span>
+        <span>Recepción • Reservas</span>
       </div>
       <nav class="menu">
-        <a routerLink="/recepcionista" routerLinkActive="active">Dashboard</a>
-        <a routerLink="/recepcionista/reservas">Reservas Hoy</a>
+        <a routerLink="/recepcionista">Dashboard</a>
+        <a routerLink="/recepcionista/reservas" routerLinkActive="active">Reservas</a>
         <a routerLink="/recepcionista/checkin">Check-in</a>
         <a routerLink="/recepcionista/habitaciones">Habitaciones</a>
         <a routerLink="/recepcionista/pagos">Pagos</a>
@@ -16,3 +16,34 @@
     </div>
   </ion-toolbar>
 </ion-header>
+
+<ion-content class="site-content ion-padding">
+  <ion-searchbar [(ngModel)]="q" (ionInput)="filtrar()" placeholder="Buscar por cliente, email, #id o habitación"></ion-searchbar>
+
+  <ion-list>
+    <ion-item *ngFor="let r of filtradas">
+      <ion-label>
+        <h3>#{{ r.id }} • {{ r.datosHuesped?.nombreCompleto || r.email }}</h3>
+        <p>{{ r.nombreHabitacion }} ({{ r.tipo }}) • {{ r.llegada }} → {{ r.salida }} • {{ r.noches }} noche/s</p>
+        <p>Total: {{ currency(r.total) }}</p>
+      </ion-label>
+
+      <ion-badge slot="end"
+        [color]="
+          r.estadoPago === 'pagado'
+            ? 'success'
+            : r.estadoPago === 'parcial'
+            ? 'warning'
+            : 'danger'
+        ">
+        {{ r.estadoPago | titlecase }}
+      </ion-badge>
+
+      <ion-button fill="clear" (click)="irCheckin(r)">Check-in</ion-button>
+    </ion-item>
+
+    <ion-item *ngIf="!filtradas.length">
+      <ion-label>No hay reservas que coincidan.</ion-label>
+    </ion-item>
+  </ion-list>
+</ion-content>

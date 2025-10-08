@@ -3,12 +3,12 @@
     <div class="container navbar">
       <div class="brand">
         <ion-icon name="desktop-outline"></ion-icon>
-        <span>Recepción habitación</span>
+        <span>Recepción • habitaciones</span>
       </div>
       <nav class="menu">
-        <a routerLink="/recepcionista" routerLinkActive="active">Dashboard</a>
-        <a routerLink="/recepcionista/reservas">Reservas Hoy</a>
-        <a routerLink="/recepcionista/checkin">Check-in</a>
+        <a routerLink="/recepcionista">Dashboard</a>
+        <a routerLink="/recepcionista/reservas">Reservas</a>
+        <a routerLink="/recepcionista/checkin" routerLinkActive="active">Check-in</a>
         <a routerLink="/recepcionista/habitaciones">Habitaciones</a>
         <a routerLink="/recepcionista/pagos">Pagos</a>
         <a href="#" class="logout" (click)="logout($event)">Cerrar sesión</a>
@@ -16,3 +16,28 @@
     </div>
   </ion-toolbar>
 </ion-header>
+
+<ion-content class="site-content ion-padding">
+  <h2>Ocupadas</h2>
+  <ion-list>
+    <ion-item *ngFor="let h of ocupadas">
+      <ion-label>
+        <b>{{ h.nombre }}</b> — {{ h.tipo }} • {{ h.estado }}
+      </ion-label>
+      <ion-badge color="danger">Ocupada</ion-badge>
+    </ion-item>
+    <ion-item *ngIf="!ocupadas.length"><ion-label>Sin ocupación</ion-label></ion-item>
+  </ion-list>
+
+  <h2 class="mt">Próximos check-ins (7 días) por habitación</h2>
+  <ion-list>
+    <ion-item *ngFor="let x of proximasPorHab">
+      <ion-label>
+        <b>{{ x.habitacion.nombre }}</b>
+        <p *ngFor="let r of x.reservas">#{{ r.id }} — {{ r.datosHuesped?.nombreCompleto || r.email }} • {{ r.llegada | date:'mediumDate' }}</p>
+      </ion-label>
+      <ion-badge color="warning">{{ x.reservas.length }}</ion-badge>
+    </ion-item>
+    <ion-item *ngIf="!proximasPorHab.length"><ion-label>Sin próximas reservas</ion-label></ion-item>
+  </ion-list>
+</ion-content>

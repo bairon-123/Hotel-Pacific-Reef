@@ -6,8 +6,8 @@
         <span>Recepción • Check-in</span>
       </div>
       <nav class="menu">
-        <a routerLink="/recepcionista" routerLinkActive="active">Dashboard</a>
-        <a routerLink="/recepcionista/reservas">Reservas Hoy</a>
+        <a routerLink="/recepcionista">Dashboard</a>
+        <a routerLink="/recepcionista/reservas">Reservas</a>
         <a routerLink="/recepcionista/checkin" routerLinkActive="active">Check-in</a>
         <a routerLink="/recepcionista/habitaciones">Habitaciones</a>
         <a routerLink="/recepcionista/pagos">Pagos</a>
@@ -18,117 +18,41 @@
 </ion-header>
 
 <ion-content class="site-content ion-padding">
-  <div class="container checkin-grid">
-
-    <!-- Columna Izquierda: Escáner + Búsqueda -->
-    <ion-card class="scan-card">
-      <ion-card-header>
-        <ion-card-title>Escanear QR / Buscar</ion-card-title>
-      </ion-card-header>
-      <ion-card-content>
-
-        <!-- Scanner -->
-        <div class="video-wrap">
-          <video #videoElement playsinline muted></video>
-          <canvas #canvasElement></canvas>
-        </div>
-
-        <div class="scan-controls">
-          <ion-button color="primary" (click)="toggleScan()">
-            <ion-icon [name]="isScanning ? 'stop-circle-outline' : 'scan-outline'" slot="start"></ion-icon>
-            {{ isScanning ? 'Detener escaneo' : 'Iniciar escaneo' }}
-          </ion-button>
-        </div>
-
-        <!-- Búsqueda manual -->
-        <div class="search-block">
-          <div class="search-row">
-            <ion-input
-              [(ngModel)]="busquedaManual"
-              placeholder="Buscar por #reserva, nombre, email, habitación"
-              (ionInput)="buscarReservaManual()">
-            </ion-input>
-            <ion-button fill="outline" (click)="buscarReservaManual()">
-              <ion-icon name="search-outline" slot="start"></ion-icon>Buscar
-            </ion-button>
-          </div>
-
-          <div class="results" *ngIf="resultadosBusqueda.length">
-            <ion-list>
-              <ion-item *ngFor="let r of resultadosBusqueda" (click)="seleccionarReserva(r)">
-                <ion-label>
-                  <b>#{{ r.id }}</b> — {{ r.datosHuesped?.nombreCompleto || r.email }}
-                  <p class="light">{{ r.nombreHabitacion }} • {{ r.llegada }} → {{ r.salida }}</p>
-                </ion-label>
-                <ion-badge color="medium">{{ r.tipo | titlecase }}</ion-badge>
-              </ion-item>
-            </ion-list>
-          </div>
-        </div>
-
-      </ion-card-content>
-    </ion-card>
-
-    <!-- Columna Derecha: Detalle -->
-    <ion-card class="panel-card">
-      <ion-card-header>
-        <ion-card-title>Detalle de la reserva</ion-card-title>
-      </ion-card-header>
-      <ion-card-content>
-        <div *ngIf="!reservaSeleccionada" class="meta light">
-          Selecciona una reserva escaneando un QR o usando la búsqueda manual.
-        </div>
-
-        <div *ngIf="reservaSeleccionada" class="detail-block">
-          <div class="detail-header">
-            <h3>#{{ reservaSeleccionada.id }} • {{ reservaSeleccionada.nombreHabitacion }}</h3>
-            <ion-badge color="medium">{{ reservaSeleccionada.tipo | titlecase }}</ion-badge>
-          </div>
-
-          <div class="meta">
-            <div>
-              <span class="light">Huésped:</span>
-              <p>{{ reservaSeleccionada.datosHuesped?.nombreCompleto || reservaSeleccionada.email }}</p>
-            </div>
-            <div>
-              <span class="light">Fechas:</span>
-              <p>{{ reservaSeleccionada.llegada }} → {{ reservaSeleccionada.salida }} ({{ reservaSeleccionada.noches }} noche/s)</p>
-            </div>
-            <div>
-              <span class="light">Pago:</span>
-              <p [class]="reservaSeleccionada.estadoPago">
-                {{ reservaSeleccionada.estadoPago | titlecase }}
-                <ng-container *ngIf="reservaSeleccionada.porcentajePagado !== undefined">
-                  • {{ reservaSeleccionada.porcentajePagado }}%
-                </ng-container>
-              </p>
-            </div>
-
-            <div *ngIf="reservaSeleccionada.qrImage">
-              <span class="light">QR actual:</span>
-              <p><img [src]="reservaSeleccionada.qrImage" alt="QR Reserva" style="width:140px;height:140px;object-fit:contain;border-radius:8px;"></p>
-            </div>
-          </div>
-
-          <div class="actions-row">
-            <ion-button color="success" (click)="procesarCheckin()">
-              <ion-icon name="log-in-outline" slot="start"></ion-icon>
-              Registrar Check-in
-            </ion-button>
-
-            <ion-button fill="outline" color="primary" (click)="generarNuevoQR()">
-              <ion-icon name="qr-code-outline" slot="start"></ion-icon>
-              Generar nuevo QR
-            </ion-button>
-
-            <ion-button fill="outline" color="medium" (click)="irAPagos()">
-              <ion-icon name="card-outline" slot="start"></ion-icon>
-              Ir a pagos
-            </ion-button>
-          </div>
-        </div>
-      </ion-card-content>
-    </ion-card>
-
+  <div class="scan-bar">
+    <ion-button (click)="start()" [disabled]="isScanning">Iniciar cámara</ion-button>
+    <ion-button color="medium" (click)="stop()" [disabled]="!isScanning">Detener</ion-button>
   </div>
+
+  <video #videoEl playsinline class="video"></video>
+  <canvas #canvasEl class="canvas" hidden></canvas>
+
+  <ion-item class="mt">
+    <ion-input placeholder="Buscar reserva por nombre, email, #id o habitación"
+               [(ngModel)]="busquedaManual"
+               (ionInput)="buscarReservaManual()"></ion-input>
+  </ion-item>
+
+  <ion-list *ngIf="resultadosBusqueda.length">
+    <ion-item button *ngFor="let r of resultadosBusqueda" (click)="seleccionarReserva(r)">
+      <ion-label>
+        <b>#{{ r.id }}</b> — {{ r.datosHuesped?.nombreCompleto || r.email }}
+        <p>{{ r.nombreHabitacion }} • {{ r.llegada }} → {{ r.salida }}</p>
+      </ion-label>
+    </ion-item>
+  </ion-list>
+
+  <ion-card *ngIf="reservaSeleccionada" class="mt">
+    <ion-card-header>
+      <ion-card-title>Reserva #{{ reservaSeleccionada.id }}</ion-card-title>
+    </ion-card-header>
+    <ion-card-content>
+      <p><b>Cliente:</b> {{ reservaSeleccionada.datosHuesped?.nombreCompleto || reservaSeleccionada.email }}</p>
+      <p><b>Habitación:</b> {{ reservaSeleccionada.nombreHabitacion }} ({{ reservaSeleccionada.tipo }})</p>
+      <p><b>Fechas:</b> {{ reservaSeleccionada.llegada }} → {{ reservaSeleccionada.salida }} ({{ reservaSeleccionada.noches }} noche/s)</p>
+      <p><b>Pago:</b> {{ reservaSeleccionada.estadoPago | titlecase }} ({{ reservaSeleccionada.porcentajePagado }}%)</p>
+
+      <ion-button color="success" (click)="aceptarCheckin()">Aceptar check-in</ion-button>
+      <ion-button fill="outline" (click)="irAPagos()">Ir a pagos</ion-button>
+    </ion-card-content>
+  </ion-card>
 </ion-content>

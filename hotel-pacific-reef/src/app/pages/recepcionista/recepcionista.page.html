@@ -7,7 +7,7 @@
       </div>
       <nav class="menu">
         <a routerLink="/recepcionista" routerLinkActive="active">Dashboard</a>
-        <a routerLink="/recepcionista/reservas">Reservas Hoy</a>
+        <a routerLink="/recepcionista/reservas">Reservas</a>
         <a routerLink="/recepcionista/checkin">Check-in</a>
         <a routerLink="/recepcionista/habitaciones">Habitaciones</a>
         <a routerLink="/recepcionista/pagos">Pagos</a>
@@ -18,11 +18,19 @@
 </ion-header>
 
 <ion-content class="site-content ion-padding">
+  <!-- Resumen -->
   <div class="summary-cards">
     <ion-card class="summary-card">
       <ion-card-header>
         <ion-card-title>{{ reservasHoy.length }}</ion-card-title>
         <ion-card-subtitle>Check-ins Hoy</ion-card-subtitle>
+      </ion-card-header>
+    </ion-card>
+
+    <ion-card class="summary-card">
+      <ion-card-header>
+        <ion-card-title>{{ reservasMes }}</ion-card-title>
+        <ion-card-subtitle>Reservas en el mes</ion-card-subtitle>
       </ion-card-header>
     </ion-card>
 
@@ -41,37 +49,66 @@
     </ion-card>
   </div>
 
-  <!-- Reservas críticas -->
+  <!-- Alertas -->
   <ion-card>
     <ion-card-header>
       <ion-card-title>Alertas y Reservas Críticas</ion-card-title>
     </ion-card-header>
     <ion-card-content>
       <ion-list>
-        <ion-item *ngFor="let alerta of alertas" [color]="alerta.critico ? 'danger' : 'warning'">
+        <ion-item *ngFor="let a of alertas" [color]="a.critico ? 'danger' : 'warning'">
           <ion-label>
-            <h3>{{ alerta.titulo }}</h3>
-            <p>{{ alerta.mensaje }}</p>
+            <h3>{{ a.titulo }}</h3>
+            <p>{{ a.mensaje }}</p>
           </ion-label>
+        </ion-item>
+        <ion-item *ngIf="!alertas.length">
+          <ion-label>Sin alertas por ahora.</ion-label>
         </ion-item>
       </ion-list>
     </ion-card-content>
   </ion-card>
 
-  <!--check-ins -->
+  <!-- Check-ins hoy -->
   <ion-card>
     <ion-card-header>
       <ion-card-title>Próximos Check-ins (Hoy)</ion-card-title>
     </ion-card-header>
     <ion-card-content>
       <ion-list>
-        <ion-item *ngFor="let reserva of proximosCheckins">
+        <ion-item *ngFor="let r of reservasHoy">
           <ion-label>
-            <h3>#{{ reserva.id }} • {{ reserva.datosHuesped?.nombreCompleto }}</h3>
-            <p>{{ reserva.nombreHabitacion }} • {{ reserva.llegada | date:'HH:mm' }}</p>
-            <p [class]="reserva.estadoPago">{{ reserva.estadoPago | titlecase }} ({{ reserva.porcentajePagado }}%)</p>
+            <h3>#{{ r.id }} • {{ r.datosHuesped?.nombreCompleto || r.email }}</h3>
+            <p>{{ r.nombreHabitacion }} • {{ r.llegada | date:'short' }}</p>
+            <p [class]="r.estadoPago">{{ r.estadoPago | titlecase }} ({{ r.porcentajePagado }}%)</p>
           </ion-label>
-          <ion-button fill="outline" (click)="procesarCheckin(reserva)">Check-in</ion-button>
+          <ion-button fill="outline" (click)="procesarCheckin(r)">Check-in</ion-button>
+        </ion-item>
+        <ion-item *ngIf="!reservasHoy.length">
+          <ion-label>No hay check-ins programados para hoy.</ion-label>
+        </ion-item>
+      </ion-list>
+    </ion-card-content>
+  </ion-card>
+
+  <!-- Próximas recepciones (7 días) -->
+  <ion-card>
+    <ion-card-header>
+      <ion-card-title>Próximas recepciones (7 días)</ion-card-title>
+    </ion-card-header>
+    <ion-card-content>
+      <ion-list>
+        <ion-item *ngFor="let r of proximos7dias">
+          <ion-label>
+            <h3>#{{ r.id }} • {{ r.datosHuesped?.nombreCompleto || r.email }}</h3>
+            <p>🗓 {{ r.llegada | date:'mediumDate' }} • {{ r.nombreHabitacion }}</p>
+          </ion-label>
+          <ion-badge [color]="r.estadoPago === 'pagado' ? 'success' : (r.estadoPago === 'parcial' ? 'warning' : 'danger')">
+            {{ r.estadoPago | titlecase }}
+          </ion-badge>
+        </ion-item>
+        <ion-item *ngIf="!proximos7dias.length">
+          <ion-label>Sin recepciones próximas.</ion-label>
         </ion-item>
       </ion-list>
     </ion-card-content>

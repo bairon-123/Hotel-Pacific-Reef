@@ -3,16 +3,55 @@
     <div class="container navbar">
       <div class="brand">
         <ion-icon name="desktop-outline"></ion-icon>
-        <span>Recepción pagos</span>
+        <span>Recepción • Pagos</span>
       </div>
       <nav class="menu">
-        <a routerLink="/recepcionista" routerLinkActive="active">Dashboard</a>
-        <a routerLink="/recepcionista/reservas">Reservas Hoy</a>
+        <a routerLink="/recepcionista">Dashboard</a>
+        <a routerLink="/recepcionista/reservas" routerLinkActive="active">Reservas</a>
         <a routerLink="/recepcionista/checkin">Check-in</a>
         <a routerLink="/recepcionista/habitaciones">Habitaciones</a>
-        <a routerLink="/recepcionista/pagos">Pagos</a>
+        <a routerLink="/recepcionista/pagos" routerLinkActive="active">Pagos</a>
         <a href="#" class="logout" (click)="logout($event)">Cerrar sesión</a>
       </nav>
     </div>
   </ion-toolbar>
 </ion-header>
+
+<ion-content class="site-content ion-padding">
+  <ion-list>
+    <ion-item *ngFor="let r of pendientes">
+      <ion-label>
+        <h3>#{{ r.id }} — {{ r.datosHuesped?.nombreCompleto || r.email }}</h3>
+        <p>{{ r.nombreHabitacion }} • {{ r.llegada }} → {{ r.salida }}</p>
+        <p>
+          Total: {{ currency(r.total) }} —
+          Pagado: {{ r.porcentajePagado }}% —
+          Restante: <b>{{ currency(restante(r)) }}</b>
+        </p>
+        <div class="actions">
+          <ion-button size="small" fill="outline" (click)="pagar(r)">
+            <ion-icon name="cash-outline" slot="start"></ion-icon>
+            Registrar pago
+          </ion-button>
+          <ion-button
+            size="small"
+            color="success"
+            (click)="completarPago(r)"
+            [disabled]="restante(r) <= 0"
+          >
+            <ion-icon name="checkmark-done-outline" slot="start"></ion-icon>
+            Completar
+          </ion-button>
+        </div>
+      </ion-label>
+
+      <ion-badge color="warning" *ngIf="r.estadoPago === 'parcial'">Parcial</ion-badge>
+      <ion-badge color="danger"  *ngIf="r.estadoPago === 'pendiente'">Pendiente</ion-badge>
+      <ion-badge color="success" *ngIf="r.estadoPago === 'pagado'">Pagado</ion-badge>
+    </ion-item>
+
+    <ion-item *ngIf="!pendientes.length">
+      <ion-label>Sin pagos pendientes hoy.</ion-label>
+    </ion-item>
+  </ion-list>
+</ion-content>
