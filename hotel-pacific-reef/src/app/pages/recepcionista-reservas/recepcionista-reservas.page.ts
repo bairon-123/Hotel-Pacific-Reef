@@ -3,23 +3,23 @@ import { CommonModule } from '@angular/common';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import {
   IonHeader, IonToolbar, IonTitle, IonContent,
-  IonIcon, IonButton, IonButtons, IonList, IonItem, IonLabel, IonBadge
+  IonIcon, IonButton, IonButtons
 } from '@ionic/angular/standalone';
 
 @Component({
-  selector: 'app-recepcionistapagos',
+  selector: 'app-recepcionista-reservas',
   standalone: true,
   imports: [
     CommonModule,
     RouterLink,
     RouterLinkActive,
     IonHeader, IonToolbar, IonTitle, IonContent,
-    IonIcon, IonButton, IonButtons, IonList, IonItem, IonLabel, IonBadge
+    IonIcon, IonButton, IonButtons, 
   ],  
-  templateUrl: './recepcionista-pagos.page.html',
-  styleUrls: ['./recepcionista-pagos.page.scss']
+  templateUrl: './recepcionista-reservas.page.html',
+  styleUrls: ['./recepcionista-reservas.page.scss']
 })
-export class RecepcionistaPagosPage {
+export class RecepcionistaReservasPage {
   authDb: any;
   nav: any;
 

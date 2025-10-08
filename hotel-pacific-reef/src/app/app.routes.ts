@@ -19,6 +19,9 @@ export const routes: Routes = [
   { path: 'recepcionista/habitaciones', loadComponent: () => import('./pages/recepcionista-habitaciones/recepcionista-habitaciones.page').then(m => m.RecepcionistaHabitacionesPage), canActivate: [recepcionistaGuard] },
   { path: 'recepcionista/pagos', loadComponent: () => import('./pages/recepcionista-pagos/recepcionista-pagos.page').then(m => m.RecepcionistaPagosPage), canActivate: [recepcionistaGuard] },
 
+  { path: 'recepcionista/reservas', loadComponent: () => import('./pages/recepcionista-reservas/recepcionista-reservas.page').then(m => m.RecepcionistaReservasPage), canActivate: [recepcionistaGuard] },
+
+
   // Admin
   { path: 'admin',                loadComponent: () => import('./pages/admin/admin.page').then(m => m.AdminPage), canActivate: [adminGuard] },
   { path: 'admin/usuarios',       loadComponent: () => import('./pages/admin-usuarios/admin-usuarios.page').then(m => m.AdminUsuariosPage), canActivate: [adminGuard] },
@@ -27,4 +30,9 @@ export const routes: Routes = [
   { path: 'admin/reportes',       loadComponent: () => import('./pages/admin-reportes/admin-reportes.page').then(m => m.AdminReportesPage), canActivate: [adminGuard] },
   
   { path: '**', redirectTo: 'home' },
+  {
+    path: 'recepcionista-reservas',
+    loadComponent: () => import('./pages/recepcionista-reservas/recepcionista-reservas.page').then( m => m.RecepcionistaReservasPage)
+  },
+
 ];

@@ -1,26 +1,45 @@
-
-import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, ViewChild, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterLink } from '@angular/router';
-import { IonicModule, NavController, ToastController, AlertController } from '@ionic/angular';
 import { FormsModule } from '@angular/forms';
+import { RouterLink, RouterLinkActive } from '@angular/router';
+
+import {
+  IonHeader, IonToolbar, IonTitle, IonContent,
+  IonButtons, IonButton, IonIcon, IonList, IonItem, IonLabel,
+  IonInput, IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonBadge, IonText
+} from '@ionic/angular/standalone';
+
+import { NavController, ToastController, AlertController } from '@ionic/angular';
 import { AuthDbService, Reserva } from '../../services/auth-db.service';
 
 @Component({
   selector: 'app-recepcionista-checkin',
   standalone: true,
-  imports: [CommonModule, IonicModule, FormsModule, RouterLink],
-  templateUrl: './recepcionista-checkin.page.html'
+  imports: [
+    CommonModule,
+    FormsModule,
+    RouterLink,
+    RouterLinkActive,
+    // Ionic standalone
+    IonHeader, IonToolbar, IonTitle, IonContent,
+    IonButtons, IonButton, IonIcon, IonList, IonItem, IonLabel,
+    IonInput, IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonBadge, IonText
+  ],
+  templateUrl: './recepcionista-checkin.page.html',
+  styleUrls: ['./recepcionista-checkin.page.scss']
 })
-export class RecepcionistaCheckinPage implements OnInit {
-  @ViewChild('videoElement') videoElement!: ElementRef<HTMLVideoElement>;
+export class RecepcionistaCheckinPage implements OnInit, OnDestroy {
+  @ViewChild('videoElement')  videoElement!: ElementRef<HTMLVideoElement>;
   @ViewChild('canvasElement') canvasElement!: ElementRef<HTMLCanvasElement>;
 
+  // Scanner
   isScanning = false;
   stream: MediaStream | null = null;
-  reservaSeleccionada: Reserva | null = null;
+
+  // Búsqueda / selección
   busquedaManual = '';
   resultadosBusqueda: Reserva[] = [];
+  reservaSeleccionada: Reserva | null = null;
 
   constructor(
     private authDb: AuthDbService,
@@ -33,163 +52,125 @@ export class RecepcionistaCheckinPage implements OnInit {
     await this.authDb.init();
   }
 
+  ngOnDestroy() {
+    this.detenerEscaneo();
+  }
+
+  /* ========== Escáner ========== */
   async toggleScan() {
-    if (this.isScanning) {
-      this.detenerEscaneo();
-    } else {
-      await this.iniciarEscaneo();
-    }
+    if (this.isScanning) return this.detenerEscaneo();
+    await this.iniciarEscaneo();
   }
 
-  async iniciarEscaneo() {
+  private async iniciarEscaneo() {
     try {
-      this.stream = await navigator.mediaDevices.getUserMedia({ 
-        video: { facingMode: 'environment' } 
-      });
-      
-      this.videoElement.nativeElement.srcObject = this.stream;
+      this.stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+      const video = this.videoElement.nativeElement;
+      video.srcObject = this.stream;
+      await video.play();
       this.isScanning = true;
-      
-      // Aquí integrarías una librería de escaneo QR como jsQR
-      this.escanearQR();
-      
-    } catch (error) {
-      this.mostrarError('No se pudo acceder a la cámara');
+      this.loopEscaneo();
+    } catch {
+      this.mostrarError('No se pudo acceder a la cámara.');
     }
   }
 
-  detenerEscaneo() {
+  private detenerEscaneo() {
     this.isScanning = false;
     if (this.stream) {
-      this.stream.getTracks().forEach(track => track.stop());
+      this.stream.getTracks().forEach(t => t.stop());
+      this.stream = null;
     }
   }
 
-  async escanearQR() {
-    // Implementación básica de escaneo QR
-    // En una implementación real usarías jsQR o similar
+  // Aquí podrías integrar jsQR; por ahora solo dibujamos frames (overlay)
+  private loopEscaneo() {
     const canvas = this.canvasElement.nativeElement;
-    const context = canvas.getContext('2d');
-    
-    const procesarFrame = () => {
+    const ctx = canvas.getContext('2d');
+
+    const step = () => {
       if (!this.isScanning) return;
-      
       const video = this.videoElement.nativeElement;
-      canvas.width = video.videoWidth;
-      canvas.height = video.videoHeight;
-      
-      context?.drawImage(video, 0, 0, canvas.width, canvas.height);
-      
-      // Aquí iría el procesamiento real del QR
-      // Por ahora es simulado
-      
-      requestAnimationFrame(procesarFrame);
+      if (video.readyState >= 2) {
+        canvas.width  = video.videoWidth;
+        canvas.height = video.videoHeight;
+        ctx?.drawImage(video, 0, 0, canvas.width, canvas.height);
+      }
+      requestAnimationFrame(step);
     };
-    
-    procesarFrame();
+    step();
   }
 
+  /* ========== Búsqueda manual ========== */
   buscarReservaManual() {
-    if (!this.busquedaManual.trim()) {
-      this.resultadosBusqueda = [];
-      return;
-    }
+    const q = (this.busquedaManual || '').trim().toLowerCase();
+    if (!q) { this.resultadosBusqueda = []; return; }
 
-    const todasReservas = this.authDb.listReservations();
-    const busqueda = this.busquedaManual.toLowerCase();
-    
-    this.resultadosBusqueda = todasReservas.filter(reserva =>
-      reserva.id.toString().includes(busqueda) ||
-      reserva.datosHuesped?.nombreCompleto.toLowerCase().includes(busqueda) ||
-      reserva.datosHuesped?.email.toLowerCase().includes(busqueda) ||
-      reserva.nombreHabitacion.toLowerCase().includes(busqueda)
-    ).slice(0, 10); // Limitar resultados
+    const todas = this.authDb.listReservations();
+    this.resultadosBusqueda = todas.filter(r =>
+      r.id.toString().includes(q) ||
+      (r.datosHuesped?.nombreCompleto || '').toLowerCase().includes(q) ||
+      (r.datosHuesped?.email || '').toLowerCase().includes(q) ||
+      (r.nombreHabitacion || '').toLowerCase().includes(q)
+    ).slice(0, 10);
   }
 
-  seleccionarReserva(reserva: Reserva) {
-    this.reservaSeleccionada = reserva;
+  seleccionarReserva(r: Reserva) {
+    this.reservaSeleccionada = r;
     this.resultadosBusqueda = [];
     this.busquedaManual = '';
   }
 
+  /* ========== Acciones ========== */
   async procesarCheckin() {
     if (!this.reservaSeleccionada) return;
 
-    // Verificar si el QR ya fue usado
-    if (this.reservaSeleccionada.qrUsado) {
-      const alert = await this.alert.create({
-        header: 'QR Ya Utilizado',
+    if ((this.reservaSeleccionada as any).qrUsado) {
+      const a = await this.alert.create({
+        header: 'QR ya utilizado',
         message: 'Esta reserva ya fue registrada anteriormente.',
         buttons: ['OK']
       });
-      await alert.present();
+      await a.present();
       return;
     }
 
     try {
-      // Usar el método específico del servicio en lugar de manipular directamente
       const sessionEmail = this.authDb.getSessionEmail();
-      if (!sessionEmail) {
-        this.mostrarError('No hay sesión activa');
-        return;
-      }
+      if (!sessionEmail) return this.mostrarError('No hay sesión activa.');
 
-      this.authDb.registrarCheckin(this.reservaSeleccionada.id, sessionEmail);
-      
-      this.mostrarExito('Check-in registrado exitosamente');
+      await (this.authDb as any).registrarCheckin(this.reservaSeleccionada.id, sessionEmail);
+      this.mostrarExito('Check-in registrado exitosamente.');
       this.reservaSeleccionada = null;
-      
-    } catch (error: any) {
-      this.mostrarError(error.message || 'Error al registrar check-in');
+    } catch (e: any) {
+      this.mostrarError(e?.message || 'Error al registrar check-in.');
     }
   }
 
   irAPagos() {
-    if (this.reservaSeleccionada) {
-      this.nav.navigateForward('/recepcionista/pagos', {
-        state: { reservaId: this.reservaSeleccionada.id }
-      });
-    }
+    if (!this.reservaSeleccionada) return;
+    this.nav.navigateForward('/recepcionista/pagos', {
+      state: { reservaId: this.reservaSeleccionada.id }
+    });
   }
 
   async generarNuevoQR() {
     if (!this.reservaSeleccionada) return;
-    
     try {
-      const nuevoQR = this.authDb.generarNuevoQR(this.reservaSeleccionada.id);
-      this.authDb.attachQrToReservation(
-        this.reservaSeleccionada.id, 
-        nuevoQR.qrImage, 
-        nuevoQR.qrPayload
-      );
-      
-      this.mostrarExito('Nuevo QR generado exitosamente');
-    } catch (error: any) {
-      this.mostrarError(error.message || 'Error al generar nuevo QR');
+      const nuevoQR = (this.authDb as any).generarNuevoQR(this.reservaSeleccionada.id);
+      this.authDb.attachQrToReservation(this.reservaSeleccionada.id, nuevoQR.qrImage, nuevoQR.qrPayload);
+      this.mostrarExito('Nuevo QR generado exitosamente.');
+    } catch (e: any) {
+      this.mostrarError(e?.message || 'Error al generar nuevo QR.');
     }
   }
 
-  async mostrarExito(mensaje: string) {
-    const toast = await this.toast.create({
-      message: mensaje,
-      duration: 2000,
-      color: 'success'
-    });
-    await toast.present();
+  /* ========== UI helpers ========== */
+  currency(v: number | null | undefined) {
+    return (v ?? 0).toLocaleString('es-CL', { style: 'currency', currency: 'CLP', maximumFractionDigits: 0 });
   }
-
-  async mostrarError(mensaje: string) {
-    const toast = await this.toast.create({
-      message: mensaje,
-      duration: 3000,
-      color: 'danger'
-    });
-    await toast.present();
-  }
-
-  ngOnDestroy() {
-    this.detenerEscaneo();
-  }
+  async mostrarExito(msg: string) { (await this.toast.create({ message: msg, duration: 2000, color: 'success' })).present(); }
+  async mostrarError(msg: string) { (await this.toast.create({ message: msg, duration: 2800, color: 'danger'  })).present(); }
 
   logout(ev?: Event) {
     ev?.preventDefault();
@@ -197,4 +178,3 @@ export class RecepcionistaCheckinPage implements OnInit {
     this.nav.navigateRoot('/login');
   }
 }
-
